@@ -1,0 +1,1689 @@
+﻿# Menggambar Plot 3D dengan EMT
+Bagian ini merupakan pengantar pembuatan plot 3D di Euler untuk memvisualisasikan fungsi dua variabel.
+
+
+Euler merender grafik fungsi menggunakan algoritma pengurutan untuk menyembunyikan elemen di latar belakang. Secara umum, Euler menerapkan proyeksi terpusat. Tampilan bawaan mengarah dari kuadran x-y positif
+menuju titik asal (0,0,0). Pengaturan sudut 0° mengarahkan pandangan sejajar sumbu-y. Sudut dan ketinggian pandangan dapat disesuaikan kebutuhan.
+
+
+Euler mampu memplot:
+
+
+* 
+Permukaan dengan efek bayangan, garis kontur, atau rentang ketinggian.
+
+* 
+Kumpulan titik.
+
+* 
+Kurva parametrik.
+
+* 
+Permukaan implisit.
+
+
+Plot 3D suatu fungsi dipanggil menggunakan perintah plot3d. Cara paling sederhana adalah memplot ekspresi matematika dengan variabel x dan y. Parameter r digunakan untuk mengatur rentang area plot di sekitar
+titik asal (0,0).
+
+
+\>aspect(1.5); plot3d("x^2+sin(y)",-5,5,0,6\*pi):
+
+
+![images/Tugas%204-001.png](images/Tugas%204-001.png)
+
+\>plot3d("x^2+x\*sin(y)",-5,5,0,6\*pi):
+
+
+![images/Tugas%204-002.png](images/Tugas%204-002.png)
+
+Modifikasi parameter grafik tersebut agar menghasilkan kurva lengkung atau melingkar pada bidang
+horizontal maupun vertikal, lalu tentukan fungsi matematisnya.
+
+
+\>remvalue x, y
+
+\>plot3d("x\*cos(y)", "x\*sin(y)", "(x\*cos(y))^2 + (x\*cos(y))\*sin(x\*sin(y))", 0, 5, 0, 2\*pi):
+
+
+![images/Tugas%204-003.png](images/Tugas%204-003.png)
+
+\>plot3d("sin(sqrt(x^2+y^2))\*cos(y)", -5, 5, -5, 5):
+
+
+![images/Tugas%204-004.png](images/Tugas%204-004.png)
+
+\>plot3d("(4+cos(y))\*cos(x)", "(4+cos(y))\*sin(x)", "sin(y)+sin(x)", 0, 2\*pi, 0, 2\*pi):
+
+
+![images/Tugas%204-005.png](images/Tugas%204-005.png)
+
+# Fungsi Dua Variabel
+
+Pembuatan grafik fungsi dapat dilakukan menggunakan:
+
+
+* 
+Ekspresi matematika dengan variabel x dan y.
+
+* 
+Pemanggilan nama fungsi dua variabel.
+
+* 
+Matriks data numerik.
+
+
+Tampilan standar grafik berupa jaring kawat dengan warna berbeda di kedua sisinya. Nilai bawaan
+interval jaring adalah 10, dan keseluruhan permukaan dibentuk oleh poligon 40x40. Pengaturan ini
+dapat diubah.
+
+
+* 
+n=40, n=[40,40]: Jumlah perulangan poligon pada setiap sumbu.
+
+* 
+grid=10, grid=[10,10]: Jumlah interval garis jaring pada setiap sumbu.
+
+
+Contoh berikut menerapkan nilai parameter bawaan n=40 dan grid=10.
+
+
+\>plot3d("x^2+y^2"):
+
+
+![images/Tugas%204-006.png](images/Tugas%204-006.png)
+
+Interaksi grafik dengan pengguna dilakukan dengan menambahkan parameter &gt;user. Pengguna dapat
+menggunakan tombol-tombol berikut:
+
+
+* 
+Tombol panah (kiri, kanan, atas, bawah): Memutar sudut pandang.
+
+* 
+Tombol + dan -: Memperbesar atau memperkecil skala visual grafik.
+
+* 
+Tombol a: Menampilkan grafik dalam mode anaglif.
+
+* 
+Tombol l: Menyalakan atau mematikan rotasi sumber cahaya otomatis.
+
+* 
+Spasi: Mereset tampilan ke pengaturan sudut pandang awal.
+
+* 
+Return/Enter: Menutup sesi interaksi dan melanjutkan eksekusi program.
+
+
+\>plot3d("exp(-x^2+y^2)",\>user, ...  
+\>     title="Putar dengan tombol panah (tekan return untuk selesai)"):
+
+
+![images/Tugas%204-007.png](images/Tugas%204-007.png)
+
+Batas koordinat grafik fungsi dapat diubah menggunakan parameter berikut:
+
+
+* 
+a,b: Batas minimum dan maksimum nilai pada sumbu-x.
+
+* 
+c,d: Batas minimum dan maksimum nilai pada sumbu-y.
+
+* 
+r: Area simetris berupa bujur sangkar di sekitar titik asal (0,0).
+
+* 
+n: Jumlah titik persilangan atau interval dalam grid plot.
+
+
+Parameter lain tersedia untuk memodifikasi skala fungsi atau rasio geometri grafik:
+
+
+fscale: Memodifikasi rentang ukuran fungsi pada sumbu-z (defaultnya menggunakan
+&lt;fscale).
+
+
+scale: Angka tunggal atau vektor 1x2 penentu rasio pelebaran arah x dan y.
+
+
+frame: Menentukan jenis bingkai pembatas grafik (nilai bawaan: 1).
+
+
+\>plot3d("exp(-(x^2+y^2)/5)",r=10,n=80,fscale=4,scale=1.2,frame=3,\>user):
+
+
+![images/Tugas%204-008.png](images/Tugas%204-008.png)
+
+Proyeksi kamera diatur melalui parameter berikut:
+
+
+* 
+distance: Jarak kamera virtual ke objek grafik.
+
+* 
+zoom: Faktor perbesaran tampilan.
+
+* 
+angle: Sudut rotasi sumbu-z dalam radian, diukur dari sumbu-y negatif.
+
+* 
+height: Sudut elevasi kamera dari bidang alas dalam radian.
+
+
+Pengaturan kamera saat ini dapat diperiksa atau diubah dengan perintah view(). Perintah
+ini mengembalikan matriks pengaturan kamera.
+
+
+\>view
+
+
+    [5,  2.6,  2,  0.4]
+
+Mengatur jarak kamera yang kecil menghilangkan perlunya pembesaran (zoom) tinggi,
+menghasilkan efek proyeksi sudut lebar.
+
+
+Contoh berikut menggunakan sudut (angle) pi/2 dan elevasi (height) 0, sehingga kamera
+melihat tepat dari sumbu-y negatif. Label indikator untuk sumbu-y secara otomatis tidak
+ditampilkan.
+
+
+\>plot3d("x^2+y",distance=3,zoom=1,angle=pi/2,height=0):
+
+
+![images/Tugas%204-009.png](images/Tugas%204-009.png)
+
+Secara standar, pusat pandangan mengarah ke titik tengah kubus pembatas. Pusat pandangan
+ini dapat digeser dengan parameter center.
+
+
+\>plot3d("x^4+y^2",a=0,b=1,c=-1,d=1,angle=-20°,height=20°, ...  
+\>     center=[0.4,0,0],zoom=5):
+
+
+![images/Tugas%204-010.png](images/Tugas%204-010.png)
+
+Grafik 3D disesuaikan otomatis agar muat ke dalam kubus standar. Hal ini memudahkan
+penyesuaian tanpa perlu mengatur jarak kamera atau zoom secara manual saat rentang skala
+bervariasi. Penanda label angka akan mengindikasikan nilai absolut riil pada grafik.
+
+
+Jika normalisasi rasio skala dimatikan (&lt;scale atau scale=false), Anda perlu mengatur
+nilai distance dan center secara manual agar geometri grafik tidak terpotong.
+
+
+\>plot3d("5\*exp(-x^2-y^2)",r=2,<fscale,<scale,distance=13,height=50°, ...  
+\>     center=[0,0,-2],frame=3):
+
+
+![images/Tugas%204-011.png](images/Tugas%204-011.png)
+
+Proyeksi polar dapat diaktifkan dengan menambahkan parameter &gt;polar. Fungsi matematika
+harus mendefinisikan r terhadap x dan sudut terhadap y. Pengubahan skala fungsi polar
+ditangani oleh fscale, sementara bidang horizontal disesuaikan dengan skala otomatis
+bawaan.
+
+
+\>plot3d("1/(x^2+y^2+1)",r=5,\>polar, ...  
+\>   fscale=2,\>hue,n=100,zoom=4,\>contour,color=blue):
+
+
+![images/Tugas%204-012.png](images/Tugas%204-012.png)
+
+\>function f(r) := exp(-r/2)\*cos(r); ...  
+\>   plot3d("f(x^2+y^2)",\>polar,scale=[1,1,0.4],r=pi,frame=3,zoom=4):
+
+
+![images/Tugas%204-013.png](images/Tugas%204-013.png)
+
+Parameter rotate memungkinkan pemutaran kurva 2D mengelilingi sumbu tertentu untuk
+membentuk permukaan 3D.
+
+
+* 
+rotate=1 (atau rotate=true): Memutar kurva mengelilingi sumbu-x.
+
+* 
+rotate=2: Memutar kurva mengelilingi sumbu-z.
+
+
+\>plot3d("x^2+1",a=-1,b=1,rotate=true,grid=5):
+
+
+![images/Tugas%204-014.png](images/Tugas%204-014.png)
+
+\>plot3d("x^2+1",a=-1,b=1,rotate=2,grid=5):
+
+
+![images/Tugas%204-015.png](images/Tugas%204-015.png)
+
+\>plot3d("sqrt(25-x^2)",a=0,b=5,rotate=1):
+
+
+![images/Tugas%204-016.png](images/Tugas%204-016.png)
+
+\>plot3d("x\*sin(x)",a=0,b=6pi,rotate=2):
+
+
+![images/Tugas%204-017.png](images/Tugas%204-017.png)
+
+Berikut adalah contoh menggabungkan tiga ekspresi matematika sekaligus dalam satu plot
+3D.
+
+
+\>plot3d("x","x^2+y^2","y",r=2,zoom=3.5,frame=3):
+
+
+![images/Tugas%204-018.png](images/Tugas%204-018.png)
+
+# Plot Kontur
+
+Standarnya, Euler menampilkan jaring (grid) persegi pada plot. Grid ini dapat dihilangkan
+untuk menonjolkan gradasi warna berdasarkan ketinggian (spectral hue). Euler juga
+mendukung efek pencahayaan (shading) untuk mempertegas bentuk permukaan serta pembuatan
+gambar anaglif tiga dimensi (merah/sian).
+
+
+- &gt;hue: Mengaktifkan pewarnaan bayangan (shading) dan menyembunyikan garis jaring
+kawat.
+
+
+- &gt;contour: Menampilkan garis kontur ketinggian pada permukaan grafik.
+
+
+- level=... (atau levels): Menentukan rentang atau nilai level untuk garis kontur.
+
+
+Euler menggunakan pengaturan level otomatis (level="auto") untuk
+mendistribusikan garis kontur secara proporsional.
+
+
+Nilai parameter dapat disesuaikan. Contoh berikut menggunakan grid 100x100, menyesuaikan
+skala sumbu, serta mengubah sudut pandang kamera.
+
+
+\>plot3d("exp(-x^2-y^2)",r=2,n=100,level="thin", ...  
+\>    \>contour,\>spectral,fscale=1,scale=1.1,angle=45°,height=20°):
+
+
+![images/Tugas%204-019.png](images/Tugas%204-019.png)
+
+\>plot3d("exp(x\*y)",angle=100°,\>contour,color=green):
+
+
+![images/Tugas%204-020.png](images/Tugas%204-020.png)
+
+Pengaturan awal memberikan warna abu-abu polos pada shading. Skema warna dapat diubah
+menggunakan palet bawaan.
+
+
+- &gt;spectral: Menggunakan skema warna spektral standar.
+
+
+- color=...: Memilih warna kustom atau skema warna khusus.
+
+
+Contoh berikut meningkatkan jumlah titik kalkulasi (n=100) agar garis kontur dirender
+lebih halus dan presisi.
+
+
+\>plot3d("x^2+y^2",\>spectral,\>contour,n=100):
+
+
+![images/Tugas%204-021.png](images/Tugas%204-021.png)
+
+Rentang dan nilai garis kontur pada permukaan grafik dapat ditentukan secara eksplisit.
+Pada contoh berikut, tingkat kontur ditentukan dari -1 hingga 1 dengan interval 0.1.
+
+
+\>plot3d("x^2-y^2",0,5,0,5,level=-1:0.1:1,color=redgreen):
+
+
+![images/Tugas%204-022.png](images/Tugas%204-022.png)
+
+Contoh berikut menampilkan pita kontur yang lebih tebal pada interval nilai [-0.1, 0] dan
+[0.9, 1]. Format nilai disajikan dalam matriks 2x2.
+
+
+Parameter grid=10 digunakan untuk membagi area menjadi 10 interval jaring.
+
+
+\>plot3d("x^2+y^3",level=[-0.1,0.9;0,1], ...  
+\>     \>spectral,angle=30°,grid=10,contourcolor=gray):
+
+
+![images/Tugas%204-023.png](images/Tugas%204-023.png)
+
+Contoh berikut memplot kurva tempat titik-titik yang memenuhi persamaan implicit:
+
+
+$$f(x,y) = x^y-y^x = 0$$Plot ini ditampilkan khusus untuk level tunggal pada ketinggian zero set (level=0).
+
+
+\>plot3d("x^y-y^x",level=0,a=0,b=6,c=0,d=6,contourcolor=red,n=100):
+
+
+![images/Tugas%204-025.png](images/Tugas%204-025.png)
+
+Proyeksi garis kontur juga dapat diproyeksikan ke alas bawah permukaan grafik menggunakan
+parameter &gt;cp. Warna kontur proyeksi dan jaraknya dari plot dapat dikustomisasi.
+
+
+\>plot3d("x^2+y^4",\>cp,cpcolor=green,cpdelta=0.2):
+
+
+![images/Tugas%204-026.png](images/Tugas%204-026.png)
+
+Berikut adalah contoh berbagai gaya tampilan dan pewarnaan pada Euler. Bingkai objek
+dapat dimatikan dengan atribut &lt;frame, disertai penyesuaian skema warna serta
+kepadatan jaring (grid).
+
+
+\>figure(2,2); ...  
+\>   expr="y^3-x^2"; ...  
+\>   figure(1);  ...  
+\>     plot3d(expr,<frame,\>cp,cpcolor=spectral); ...  
+\>   figure(2);  ...  
+\>     plot3d(expr,<frame,\>spectral,grid=10,cp=2); ...  
+\>   figure(3);  ...  
+\>     plot3d(expr,<frame,\>contour,color=gray,nc=5,cp=3,cpcolor=greenred); ...  
+\>   figure(4);  ...  
+\>     plot3d(expr,<frame,\>hue,grid=10,\>transparent,\>cp,cpcolor=gray); ...  
+\>   figure(0):
+
+
+![images/Tugas%204-027.png](images/Tugas%204-027.png)
+
+Skema warna spektral standar menggunakan indeks bernomor 1 hingga 9. Indeks ini dapat
+dipanggil menggunakan atribut spectral=i atau color=value. Pilihan warna bawaan meliputi:
+
+
+* 
+spectral: Gradasi warna dari biru ke merah.
+
+* 
+white: Warna dasar putih dengan shading.
+
+* 
+Kombinasi dua warna: yellowblue, purplegreen, blueyellow, greenred, greenpurple,
+* redgreen.
+
+
+\>figure(3,3); ...  
+\>   for i=1:9;  ...  
+\>     figure(i); plot3d("x^2+y^2",spectral=i,\>contour,\>cp,<frame,zoom=4);  ...  
+\>   end; ...  
+\>   figure(0):
+
+
+![images/Tugas%204-028.png](images/Tugas%204-028.png)
+
+Arah sumber pencahayaan dapat diubah interaktif saat grafik ditampilkan dengan menekan
+tombol &amp;apos;l&amp;apos; dan menggunakan tombol panah. Posisi arah pencahayaan juga dapat
+ditentukan secara permanen melalui kode skrip.
+
+
+* 
+light: Vektor arah pencahayaan virtual.
+
+* 
+amb: Intensitas cahaya ambien (berkisar dari 0 hingga 1).
+
+
+Modul perenderan internal Euler tidak menghitung proyeksi bayangan jatuh (shadows). Untuk
+merender bayangan objek yang fotorealistik, pengguna dapat memanfaatkan integrasi dengan
+Povray.
+
+
+\>plot3d("-x^2-y^2", ...  
+\>     hue=true,light=[0,1,1],amb=0,user=true, ...  
+\>     title="Tekan 'l' dan tombol kursor (tekan return untuk keluar)"):
+
+
+![images/Tugas%204-029.png](images/Tugas%204-029.png)
+
+Atribut color menetapkan warna tunggal pada permukaan grafik. Warna garis indikator level
+kontur juga dapat disesuaikan (contourcolor).
+
+
+\>plot3d("-x^2-y^2",color=rgb(0.2,0.2,0),hue=true,frame=false, ...  
+\>     zoom=3,contourcolor=red,level=-2:0.1:1,dl=0.01):
+
+
+![images/Tugas%204-030.png](images/Tugas%204-030.png)
+
+Menyetel color=0 mengaktifkan efek warna pelangi (rainbow effect) pada shading permukaan
+grafik.
+
+
+\>plot3d("x^2/(x^2+y^2+1)",color=0,hue=true,grid=10):
+
+
+![images/Tugas%204-031.png](images/Tugas%204-031.png)
+
+Permukaan poligon grafik dapat dibuat transparan agar struktur bagian dalam terlihat.
+Fitur ini diaktifkan dengan atribut &gt;transparent.
+
+
+\>plot3d("x^2+y^2",\>transparent,grid=10,wirecolor=red):
+
+
+![images/Tugas%204-032.png](images/Tugas%204-032.png)
+
+# Plot Implisit
+
+Euler mendukung perenderan permukaan dari persamaan fungsi implisit f(x,y,z)=0. Algoritma
+plot3d memotong bidang ruang untuk menampilkan permukaan zero set fungsi tersebut.
+
+
+Titik-titik penyelesaian dari persamaan:
+
+
+$$f(x,y,z) = 0$$diproyeksikan pada irisan bidang x-y, x-z, atau y-z.
+
+
+* 
+implicit=1: Memotong irisan paralel bidang y-z.
+
+* 
+implicit=2: Memotong irisan paralel bidang x-z.
+
+* 
+implicit=4: Memotong irisan paralel bidang x-y.
+
+
+Kombinasi nilai dapat digunakan untuk menampilkan beberapa irisan sekaligus. Contoh
+berikut memplot fungsi implisit:
+
+
+$$M = \{ (x,y,z) : x^2+y^3+zy=1 \}$$\>plot3d("x^2+y^3+z\*y-1",r=5,implicit=3):
+
+
+![images/Tugas%204-035.png](images/Tugas%204-035.png)
+
+\>c=1; d=1;
+
+\>plot3d("((x^2+y^2-c^2)^2+(z^2-1)^2)\*((y^2+z^2-c^2)^2+(x^2-1)^2)\*((z^2+x^2-c^2)^2+(y^2-1)^2)-d",r=2,<frame,\>implicit,\>user): 
+
+
+![images/Tugas%204-036.png](images/Tugas%204-036.png)
+
+\>plot3d("x^2+y^2+4\*x\*z+z^3",\>implicit,r=2,zoom=2.5):
+
+
+![images/Tugas%204-037.png](images/Tugas%204-037.png)
+
+# Memplot Data 3D
+
+Selain persamaan fungsi, plot3d dapat menerima data numerik berupa tiga matriks koordinat
+(x,y,z) untuk menampilkan objek 3D parametrik, serupa dengan fungsi plot2d. Anda dapat
+memasukkan matriks x, y, dan z secara langsung, atau menggunakan fungsi parametrik
+fx(t,s), fy(t,s), dan fz(t,s).
+
+
+$$\gamma(t,s) = (x(t,s),y(t,s),z(t,s))$$Parameter t dan s dievaluasi dalam grid persegi untuk menghasilkan matriks koordinat x,
+y, dan z yang membentuk permukaan 3D.
+
+
+Penggunaan kalkulasi berarah matriks di Euler sangat direkomendasikan karena lebih
+efisien dalam memproses data koordinat.
+
+
+Contoh berikut memplot permukaan bola menggunakan parameter t (vektor baris) dan s
+(vektor kolom). Wilayah kutub juga dapat diwarnai khusus menggunakan parameter level dan
+contourcolor.
+
+
+\>t=linspace(0,2pi,180); s=linspace(-pi/2,pi/2,90)'; ...  
+\>   x=cos(s)\*cos(t); y=cos(s)\*sin(t); z=sin(s); ...  
+\>   plot3d(x,y,z,\>hue, ...  
+\>   color=blue,<frame,grid=[10,20], ...  
+\>   values=s,contourcolor=red,level=[90°-24°;90°-22°], ...  
+\>   scale=1.4,height=50°):
+
+
+![images/Tugas%204-039.png](images/Tugas%204-039.png)
+
+Contoh berikut menampilkan grafik fungsi parametrik z = f(t,s):
+
+
+\>t=-1:0.1:1; s=(-1:0.1:1)'; plot3d(t,s,t\*s,grid=10):
+
+
+![images/Tugas%204-040.png](images/Tugas%204-040.png)
+
+Permukaan juga dapat didefinisikan secara implisit sebagai fungsi x terhadap y dan z:
+
+
+$$x = y \, z$$\>plot3d(t\*s,t,s,angle=180°,grid=10):
+
+
+![images/Tugas%204-042.png](images/Tugas%204-042.png)
+
+Berbagai bentuk permukaan dapat dibuat dengan mendefinisikan persamaan parametriknya
+secara tepat.
+
+
+Tampilan berikut menunjukkan bola terdistorsi dengan shading. Permukaan bola standar
+didefinisikan dengan persamaan:
+
+
+$$\gamma(t,s) = (\cos(t)\cos(s),\sin(t)\sin(s),\cos(s))$$dengan rentang parameter:
+
+
+$$0 \le t \le 2\pi, \quad \frac{-\pi}{2} \le s \le \frac{\pi}{2}.$$Bentuk bola ini kemudian didistorsi menggunakan faktor pengali d(t,s):
+
+
+$$d(t,s) = \frac{\cos(4t)+\cos(8s)}{4}.$$\>t=linspace(0,2pi,320); s=linspace(-pi/2,pi/2,160)'; ...  
+\>   d=1+0.2\*(cos(4\*t)+cos(8\*s)); ...  
+\>   plot3d(cos(t)\*cos(s)\*d,sin(t)\*cos(s)\*d,sin(s)\*d,hue=1, ...  
+\>     light=[1,0,1],frame=0,zoom=5):
+
+
+![images/Tugas%204-046.png](images/Tugas%204-046.png)
+
+Euler juga dapat memplot kumpulan titik 3D (point cloud) dari tiga vektor data koordinat.
+
+
+Opsi gaya tampilan yang tersedia pada plot2d dapat digunakan pada plot3d dengan
+menambahkan parameter points=true.
+
+
+\>n=500;  ...  
+\>     plot3d(normal(1,n),normal(1,n),normal(1,n),points=true,style="."):
+
+
+![images/Tugas%204-047.png](images/Tugas%204-047.png)
+
+Kurva 3D dapat dibuat dari urutan titik koordinat dengan mengaktifkan parameter &gt;wire.
+Data titik koordinat dihitung terlebih dahulu sebelum diplot.
+
+
+\>t=linspace(0,8pi,500); ...  
+\>   plot3d(sin(t),cos(t),t/10,\>wire,zoom=3):
+
+
+![images/Tugas%204-048.png](images/Tugas%204-048.png)
+
+\>t=linspace(0,4pi,1000); plot3d(cos(t),sin(t),t/2pi,\>wire, ...  
+\>   linewidth=3,wirecolor=blue):
+
+
+![images/Tugas%204-049.png](images/Tugas%204-049.png)
+
+\>X=cumsum(normal(3,100)); ...  
+\>    plot3d(X[1],X[2],X[3],\>anaglyph,\>wire):
+
+
+![images/Tugas%204-050.png](images/Tugas%204-050.png)
+
+Euler dapat menampilkan grafik dalam mode anaglif 3D yang dapat dilihat menggunakan
+kacamata filter merah/sian.
+
+
+\> plot3d("x^2+y^3",\>anaglyph,\>contour,angle=30°):
+
+
+![images/Tugas%204-051.png](images/Tugas%204-051.png)
+
+Perbedaan ketinggian permukaan grafik dapat ditonjolkan dengan pewarnaan spektral
+bergradasi.
+
+
+\>plot3d("x^2\*y^3-y",\>spectral,\>contour,zoom=3.2):
+
+
+![images/Tugas%204-052.png](images/Tugas%204-052.png)
+
+Permukaan terparameterisasi dirender dengan memasukkan matriks nilai koordinat x, y, dan
+z yang dihasilkan dari jaring nilai parameter.
+
+
+Contoh berikut memplot permukaan pita Mobius menggunakan parameter u dan v.
+
+
+\>u=linspace(-1,1,10); v=linspace(0,2\*pi,50)'; ...  
+\>   X=(3+u\*cos(v/2))\*cos(v); Y=(3+u\*cos(v/2))\*sin(v); Z=u\*sin(v/2); ...  
+\>   plot3d(X,Y,Z,\>anaglyph,<frame,\>wire,scale=2.3):
+
+
+![images/Tugas%204-053.png](images/Tugas%204-053.png)
+
+Efek kedalaman visual 3D pada grafik berikut akan terlihat optimal jika dilihat
+menggunakan kacamata anaglif merah/sian.
+
+
+\>u:=linspace(-pi,pi,160); v:=linspace(-pi,pi,400)';  ...  
+\>   x:=(4\*(1+.25\*sin(3\*v))+cos(u))\*cos(2\*v); ...  
+\>   y:=(4\*(1+.25\*sin(3\*v))+cos(u))\*sin(2\*v); ...  
+\>    z=sin(u)+2\*cos(3\*v); ...  
+\>   plot3d(x,y,z,frame=0,scale=1.5,hue=1,light=[1,0,-1],zoom=2.8,\>anaglyph):
+
+
+![images/Tugas%204-054.png](images/Tugas%204-054.png)
+
+# Plot Statistik
+
+Diagram batang 3D (bar plot) dapat dibuat menggunakan plot3d dengan memasukkan data
+matriks:
+
+
+* 
+x: Vektor baris bernilai n+1 sebagai batas sel sumbu-x.
+
+* 
+y: Vektor kolom bernilai n+1 sebagai batas sel sumbu-y.
+
+* 
+z: Matriks ukuran nxn yang berisi nilai tinggi batang.
+
+
+Ukuran matriks z dapat lebih besar dari batas x dan y, tetapi hanya bagian nxn yang akan
+diplot.
+
+
+Pada contoh berikut, nilai x dan y disesuaikan terlebih dahulu agar posisi batang berada
+tepat di tengah koordinat yang sesuai.
+
+
+\>x=-1:0.1:1; y=x'; z=x^2+y^2; ...  
+\>   xa=(x|1.1)-0.05; ya=(y\_1.1)-0.05; ...  
+\>   plot3d(xa,ya,z,bar=true):
+
+
+![images/Tugas%204-055.png](images/Tugas%204-055.png)
+
+Permukaan grafik dapat dipisahkan menjadi beberapa segmen menggunakan parameter
+disconnect.
+
+
+\>x=-1:0.1:1; y=x'; z=x+y; d=zeros(size(x)); ...  
+\>   plot3d(x,y,z,disconnect=2:2:20):
+
+
+![images/Tugas%204-056.png](images/Tugas%204-056.png)
+
+Saat memplot matriks data M dari berkas, skala nilai sumbu-z akan dinormalisasi ke
+interval [-1,1]. Pengaturan skala otomatis pada sumbu-z ini dapat diaktifkan dengan
+menambahkan parameter &gt;zscale, atau disesuaikan dengan skala kustom (scale).
+
+
+\>i=1:20; j=i'; ...  
+\>   plot3d(i\*j^2+100\*normal(20,20),\>zscale,scale=[1,1,1.5],angle=-40°,zoom=1.8):
+
+
+![images/Tugas%204-057.png](images/Tugas%204-057.png)
+
+\>Z=intrandom(5,100,6); v=zeros(5,6); ...  
+\>   loop 1 to 5; v[#]=getmultiplicities(1:6,Z[#]); end; ...  
+\>   columnsplot3d(v',scols=1:5,ccols=[1:5]):
+
+
+![images/Tugas%204-058.png](images/Tugas%204-058.png)
+
+# Permukaan Benda Putar
+
+\>plot2d("(x^2+y^2-1)^3-x^2\*y^3",r=1.3, ...  
+\>   style="#",color=red,<outline, ...  
+\>   level=[-2;0],n=100):
+
+
+![images/Tugas%204-059.png](images/Tugas%204-059.png)
+
+\>ekspresi &= (x^2+y^2-1)^3-x^2\*y^3; $ekspresi
+
+
+$$\left(y^2+x^2-1\right)^3-x^2\,y^3$$Kurva bentuk hati (heart curve) dapat diputar mengelilingi sumbu-y untuk membentuk benda
+putar 3D. Persamaan kurvanya adalah:
+
+
+$$f(x,y)=(x^2+y^2-1)^3-x^2.y^3.$$Untuk memperoleh bentuk parametriknya, dilakukan substitusi koordinat polar:
+
+
+$$x=r.cos(a),\quad y=r.sin(a).$$\>function fr(r,a) &= ekspresi with [x=r\*cos(a),y=r\*sin(a)] | trigreduce; $fr(r,a)
+
+
+$$\left(r^2-1\right)^3+\frac{\left(\sin \left(5\,a\right)-\sin \left(  3\,a\right)-2\,\sin a\right)\,r^5}{16}$$Nilai jari-jari r dicari menggunakan fungsi bisect berdasarkan sudut a. Hasil kurva 3D
+parametrik kemudian dipromosikan dan diplot sebagai permukaan benda putar.
+
+
+\>function map f(a) := bisect("fr",0,2;a); ...  
+\>   t=linspace(-pi/2,pi/2,100); r=f(t);  ...  
+\>   s=linspace(pi,2pi,100)'; ...  
+\>   plot3d(r\*cos(t)\*sin(s),r\*cos(t)\*cos(s),r\*sin(t), ...  
+\>   \>hue,<frame,color=red,zoom=4,amb=0,max=0.7,grid=12,height=50°):
+
+
+![images/Tugas%204-064.png](images/Tugas%204-064.png)
+
+Benda putar juga dapat dibuat dengan memutar grafik implisit mengelilingi sumbu-z.
+Persamaan fungsi didefinisikan sebagai berikut:
+
+
+\>function f(x,y,z) ...
+
+
+    r=x^2+y^2;
+    return (r+z^2-1)^3-r*z^3;
+     endfunction
+</pre>
+\>plot3d("f(x,y,z)", ...  
+\>   xmin=0,xmax=1.2,ymin=-1.2,ymax=1.2,zmin=-1.2,zmax=1.4, ...  
+\>   implicit=1,angle=-30°,zoom=2.5,n=[10,100,60],\>anaglyph):
+
+
+![images/Tugas%204-065.png](images/Tugas%204-065.png)
+
+# Plot 3D Khusus
+
+Fungsi plot3d memudahkan pembuatan grafik 3D secara cepat, tetapi tidak semua kebutuhan
+khusus dapat dipenuhi. Pengguna dapat membuat prosedur kustom untuk memplot objek khusus
+sesuai kebutuhan.
+
+
+EMT bukan merupakan program ray tracer 3D khusus, tetapi dapat menggabungkan beberapa
+objek plot 3D sekaligus. Contoh berikut memvisualisasikan permukaan paraboloida beserta
+bidang singgungnya (tangent plane).
+
+
+\>function myplot ...
+
+
+      y=-1:0.01:1; x=(-1:0.01:1)';
+      plot3d(x,y,0.2*(x-0.1)/2,<scale,<frame,>hue, ..
+        hues=0.5,>contour,color=orange);
+      h=holding(1);
+      plot3d(x,y,(x^2+y^2)/2,<scale,<frame,>contour,>hue);
+      holding(h);
+    endfunction
+</pre>
+Prosedur framedplot() digunakan untuk mengatur bingkai kanvas serta menentukan batas
+koordinat dan sudut pandang kamera.
+
+
+\>framedplot("myplot",[-1,1,-1,1,0,1],height=0,angle=-30°, ...  
+\>     center=[0,0,-0.7],zoom=3):
+
+
+![images/Tugas%204-066.png](images/Tugas%204-066.png)
+
+Proyeksi garis kontur pada alas bidang (contour plane) dihitung terpisah. Fungsi plot3d()
+bekerja pada tampilan jendela penuh (fullwindow()), sedangkan plotcontourplane()
+menggambar garis kontur sesuai batas bingkai yang ditentukan.
+
+
+\>x=-1:0.02:1.1; y=x'; z=x^2-y^4;
+
+\>function myplot (x,y,z) ...  
+\>  
+<pre class="udf">      zoom(2);
+      wi=fullwindow();
+      plotcontourplane(x,y,z,level="auto",<scale);
+      plot3d(x,y,z,>hue,<scale,>add,color=white,level="thin");
+      window(wi);
+      reset();
+    endfunction
+</pre>
+\>myplot(x,y,z):
+
+
+![images/Tugas%204-067.png](images/Tugas%204-067.png)
+
+# Animasi
+
+EMT dapat menghasilkan animasi 3D dengan merekam urutan gambar (frame) dari perubahan
+parameter grafik secara berkala.
+
+
+Fungsi rotate() digunakan untuk memutar sudut pandang grafik, meredraw tampilan, dan
+menyimpan setiap bingkai menggunakan addpage() hingga menghasilkan animasi pemutaran
+objek.
+
+
+Pelajari kode sumber fungsi rotate() untuk memahami alur pembuatan animasi secara rinci.
+
+
+\>function testplot () := plot3d("x^2+y^3"); ...  
+\>   rotate("testplot"); testplot():
+
+
+![images/Tugas%204-068.png](images/Tugas%204-068.png)
+
+# Menggambar dengan Povray
+
+Pustaka povray.e memungkinkan pengguna mengekspor data EMT ke format berkas Povray. Hasil
+pencitraan ray tracing dari Povray jauh lebih halus dan fotorealistik dibandingkan
+tampilan grafik standar EMT.
+
+
+Pastikan program Povray sudah terpasang di sistem komputer Anda (http://www.povray.org/)
+dan jalurnya terdaftar dalam environment path. Tentukan lokasi berkas eksekusi
+pvengine.exe pada variabel defaultpovray.
+
+
+EMT akan menyimpan deskripsi objek ke berkas current.pov di direktori eulerhome().
+Selanjutnya, EMT memanggil Povray untuk merender berkas tersebut menjadi berkas gambar
+PNG yang akan ditampilkan di dokumen. Berkas sementara POV dapat dibersihkan menggunakan
+perintah povclear().
+
+
+Fungsi pov3d memiliki sintaks yang serupa dengan plot3d. Fungsi ini dapat memplot grafik
+fungsi, matriks permukaan, maupun garis kontur opsional, lalu merender hasilnya secara
+otomatis melalui Povray.
+
+
+Selain menggunakan pov3d(), objek Povray kustom dapat dibuat secara eksplisit. Sesi
+dimulai dengan perintah povstart(), diikuti penulisan kode Povray dengan writeln(), dan
+diakhiri dengan povend() untuk memulai proses renering.
+
+
+Tekstur dan material objek dapat diatur menggunakan fungsi povlook(). Fungsi ini
+mendukung pengaturan warna RGB, tingkat transparansi, pencahayaan ambien, serta efek
+kilau permukaan (Phong shading).
+
+
+Povray menggunakan sistem koordinat kidal (left-handed), sedangkan Euler menggunakan
+sistem koordinat kanan (right-handed). EMT secara otomatis mengonversi koordinat sehingga
+sumbu-z tetap mengarah ke atas secara vertikal.
+
+
+Muat utilitas fungsional khusus pustaka Povray sebelum beroperasi.
+
+
+\>load povray;
+
+
+Tentukan lokasi direktori instalasi Povray secara tepat. Sesuaikan jalur direktori berkas pvengine.exe
+pada variabel defaultpovray jika diperlukan.
+
+
+\>defaultpovray="C:\\Program Files\\POV-Ray\\v3.7\\bin\\pvengine.exe"
+
+
+    C:\Program Files\POV-Ray\v3.7\bin\pvengine.exe
+
+Contoh dasar perenderan kurva 3D dengan Povray. Proses ray tracing dijalankan di latar belakang.
+
+
+Povray akan membuka jendela proses saat merender. Berikan izin akses jika dialog keamanan Windows
+(UAC) muncul saat aplikasi dijalankan pertama kali.
+
+
+\>plot3d("x^2+y^2",zoom=2):
+
+
+![images/Tugas%204-069.png](images/Tugas%204-069.png)
+
+\>pov3d("x^2+y^2",zoom=3);
+
+
+![images/Tugas%204-070.png](images/Tugas%204-070.png)
+
+Properti tekstur, transparansi, serta garis tingkat kontur pada objek Povray dapat disesuaikan
+menggunakan atribut pendukung.
+
+
+\>pov3d("x^2+y^3",axiscolor=red,angle=-45°,\>anaglyph, ...  
+\>     look=povlook(cyan,0.2),level=-1:0.5:1,zoom=3.8);
+
+
+![images/Tugas%204-071.png](images/Tugas%204-071.png)
+
+Skala fungsi dapat disesuaikan secara manual agar bentuk plot sesuai dengan dimensi kubus
+pembatas ketika fitur skala otomatis dimatikan (&lt;fscale).
+
+
+Contoh berikut memplot fungsi bidang kompleks dalam rentang koordinat r=2.
+
+
+\>pov3d("((x-1)^2+y^2)\*((x+1)^2+y^2)/40",r=2, ...  
+\>     angle=-120°,level=1/40,dlevel=0.005,light=[-1,1,1],height=10°,n=50, ...  
+\>     <fscale,zoom=3.8);
+
+
+![images/Tugas%204-072.png](images/Tugas%204-072.png)
+
+# Memplot dengan Koordinat
+
+Selain menggunakan ekspresi fungsi, objek Povray dapat dibentuk dari tiga matriks data
+koordinat (x, y, z).
+
+
+Contoh berikut menampilkan permukaan benda putar yang diputar mengelilingi sumbu-z:
+
+
+\>function f(x) := x^3-x+1; ...  
+\>   x=-1:0.01:1; t=linspace(0,2pi,50)'; ...  
+\>   Z=x; X=cos(t)\*f(x); Y=sin(t)\*f(x); ...  
+\>   pov3d(X,Y,Z,angle=40°,look=povlook(red,0.1),height=50°,axis=0,zoom=4,light=[10,5,15]);
+
+
+![images/Tugas%204-073.png](images/Tugas%204-073.png)
+
+Contoh berikut memperlihatkan gelombang terredam (damped wave) dalam koordinat polar.
+
+
+Elemen tambahan dapat disisipkan ke dalam adegan Povray menggunakan parameter add=. Objek
+tambahan tersebut secara otomatis disesuaikan ukurannya ke dalam skala kubus satuan.
+
+
+\>r=linspace(0,1,80); phi=linspace(0,2pi,80)'; ...  
+\>   x=r\*cos(phi); y=r\*sin(phi); z=exp(-5\*r)\*cos(8\*pi\*r)/3;  ...  
+\>   pov3d(x,y,z,zoom=6,axis=0,height=30°,add=povsphere([0.5,0,0.25],0.15,povlook(red)), ...  
+\>     w=500,h=300);
+
+
+![images/Tugas%204-074.png](images/Tugas%204-074.png)
+
+Povray dapat menghasilkan permukaan yang sangat halus meskipun jumlah titik data grid
+terbatas. Untuk mengoptimalkan tampilan shading dan bayangan, vektor normal permukaan
+dapat disertakan dalam perhitungan.
+
+
+Vektor normal dihitung dari turunan parsial permukaan fungsi:
+
+
+\>Z &= x^2\*y^3
+
+
+    
+                                                     2  3
+                                                    x  y
+    
+
+Perkalian silang (cross product) dari turunan terhadap x dan y memberikan vektor normal
+tegak lurus permukaan.
+
+
+\>dx &= diff([x,y,Z],x); dy &= diff([x,y,Z],y);
+
+
+Komponen vektor normal (NX, NY, NZ) dihitung secara simbolik:
+
+
+\>N &= crossproduct(dx,dy); NX &= N[1]; NY &= N[2]; NZ &= N[3]; N,
+
+
+    
+                                                   3       2  2
+                                           [- 2 x y , - 3 x  y , 1]
+    
+
+Meskipun hanya menggunakan grid 25x25 titik, permukaan terlihat halus karena
+diterapkannya vektor normal (xv, yv, zv).
+
+
+\>x=-1:0.5:1; y=x';
+
+\>pov3d(x,y,Z(x,y),angle=10°, ...  
+\>     xv=NX(x,y),yv=NY(x,y),zv=NZ(x,y),<shadow);
+
+
+![images/Tugas%204-075.png](images/Tugas%204-075.png)
+
+Contoh simpul Trefoil (Trefoil Knot) berikut dirancang oleh A. Busser untuk EMT. Berkas
+contoh ini dapat ditemukan di folder pustaka EMT.
+
+
+Lokasi berkas: Examples\Trefoil Knot.
+
+
+Penggunaan vektor normal membuat permukaan kurva terlihat mulus tanpa memerlukan grid
+yang terlalu padat. Pustaka Maxima digunakan untuk menghitung turunan parsial dan vektor
+normal secara simbolik.
+
+
+\>X &= ((4+sin(3\*y))+cos(x))\*cos(2\*y); ...  
+\>   Y &= ((4+sin(3\*y))+cos(x))\*sin(2\*y); ...  
+\>   Z &= sin(x)+2\*cos(3\*y);
+
+
+Turunan parsial terhadap x dan y dihitung secara simbolik:
+
+
+\>dx &= diff([X,Y,Z],x); dy &= diff([X,Y,Z],y);
+
+
+Vektor normal hasil perkalian silang:
+
+
+\>dn &= crossproduct(dx,dy);
+
+
+Evaluasi numerik dilakukan pada grid koordinat di EMT:
+
+
+\>x:=linspace(-%pi,%pi,40); y:=linspace(-%pi,%pi,100)';
+
+
+Komponen vektor dn dievaluasi menggunakan sintaks &amp;"expression"(parameters)
+untuk melewatkan ekspresi simbolik Maxima secara langsung ke pov3d.
+
+
+\>pov3d(X(x,y),Y(x,y),Z(x,y),\>anaglyph,axis=0,zoom=5,w=450,h=350, ...  
+\>     <shadow,look=povlook(blue), ...  
+\>     xv=&"dn[1]"(x,y), yv=&"dn[2]"(x,y), zv=&"dn[3]"(x,y));
+
+
+![images/Tugas%204-076.png](images/Tugas%204-076.png)
+
+Kerangka jaring (grid 3D) dapat dibuat dan di-render di Povray menggunakan perintah povgrid().
+
+
+\>povstart(zoom=4); ...  
+\>   x=-1:0.5:1; r=1-(x+1)^2/6; ...  
+\>   t=(0°:30°:360°)'; y=r\*cos(t); z=r\*sin(t); ...  
+\>   writeln(povgrid(x,y,z,d=0.02,dballs=0.05)); ...  
+\>   povend();
+
+
+![images/Tugas%204-077.png](images/Tugas%204-077.png)
+
+Perintah povgrid() juga dapat digunakan untuk memplot kurva ruang 3D dalam bentuk tabung/kawat.
+
+
+\>povstart(center=[0,0,1],zoom=3.6); ...  
+\>   t=linspace(0,2,1000); r=exp(-t); ...  
+\>   x=cos(2\*pi\*10\*t)\*r; y=sin(2\*pi\*10\*t)\*r; z=t; ...  
+\>   writeln(povgrid(x,y,z,povlook(red))); ...  
+\>   writeAxis(0,2,axis=3); ...  
+\>   povend();
+
+
+![images/Tugas%204-078.png](images/Tugas%204-078.png)
+
+# Objek Povray
+
+Selain membuat grafik fungsi, Povray dapat membuat berbagai bentuk geometri murni dasar.
+EMT menggenerasikan deskripsi teks objek tersebut ke berkas Povray.
+
+
+Pembuatan adegan diawali dengan povstart().
+
+
+\>povstart(zoom=4);
+
+
+Contoh berikut mendefinisikan tiga silinder yang saling berpotongan tegak lurus.
+
+
+Konstanta povx, povy, dan povz mewakili vektor satuan sumbu koordinat [1,0,0], [0,1,0],
+dan [0,0,1].
+
+
+\>c1=povcylinder(-povx,povx,1,povlook(red)); ...  
+\>   c2=povcylinder(-povy,povy,1,povlook(yellow)); ...  
+\>   c3=povcylinder(-povz,povz,1,povlook(blue)); ...  
+\>  
+Kode Povray yang dihasilkan berupa teks berikut:
+
+
+\>c2
+
+
+    cylinder { &lt;0,0,-1&gt;, &lt;0,0,1&gt;, 1
+     texture { pigment { color rgb &lt;0.941176,0.941176,0.392157&gt; }  } 
+     finish { ambient 0.2 } 
+     }
+
+Tampilan tekstur dan warna tiap silinder diatur dengan fungsi povlook().
+
+
+Fungsi povlook() menghasilkan string kode tekstur Povray. Fungsi ini menerima masukan
+warna RGB, transparansi, intensitas ambien, serta efek kilau permukaan.
+
+
+\>povlook(rgb(0.1,0.2,0.3),0.1,0.5)
+
+
+     texture { pigment { color rgbf &lt;0.101961,0.2,0.301961,0.1&gt; }  } 
+     finish { ambient 0.5 } 
+    
+
+Operasi irisan (intersection) ketiga silinder digabungkan dengan perintah
+povintersection().
+
+
+\>writeln(povintersection([c1,c2,c3]));
+
+
+Perpotongan ini menghasilkan bentuk geometri kompleks yang menarik.
+
+
+\>povend;
+
+
+![images/Tugas%204-079.png](images/Tugas%204-079.png)
+
+Objek fraktal 3D dapat dikonstruksi secara rekursif menggunakan fungsi bawaan.
+
+
+Fungsi povbox() mengembalikan string definisi kubus Povray dengan koordinat dan tekstur
+yang ditentukan.
+
+
+\>function onebox(x,y,z,d) := povbox([x,y,z],[x+d,y+d,z+d],povlook());
+
+\>function fractal (x,y,z,h,n) ...  
+\>  
+<pre class="udf">     if n==1 then writeln(onebox(x,y,z,h));
+     else
+       h=h/3;
+       fractal(x,y,z,h,n-1);
+       fractal(x+2*h,y,z,h,n-1);
+       fractal(x,y+2*h,z,h,n-1);
+       fractal(x,y,z+2*h,h,n-1);
+       fractal(x+2*h,y+2*h,z,h,n-1);
+       fractal(x+2*h,y,z+2*h,h,n-1);
+       fractal(x,y+2*h,z+2*h,h,n-1);
+       fractal(x+2*h,y+2*h,z+2*h,h,n-1);
+       fractal(x+h,y+h,z+h,h,n-1);
+     endif;
+    endfunction
+</pre>
+\>povstart(fade=10,<shadow);
+
+\>fractal(-1,-1,-1,2,4);
+
+\>povend();
+
+
+![images/Tugas%204-080.png](images/Tugas%204-080.png)
+
+Povray mendukung operasi geometri Boolean (Constructive Solid Geometry / CSG) seperti
+penggabungan (union), irisan (intersection), dan pengurangan (difference) untuk memotong
+atau menggabungkan objek geometri.
+
+
+\>povstart(light=[5,-5,5],fade=10);
+
+
+Objek dapat didefinisikan sebagai variabel di Povray menggunakan perintah povdefine().
+Variabel ini ditulis langsung ke berkas Povray saat dipanggil.
+
+
+Contoh berikut mendefinisikan kubus simetris bernilai -1 hingga 1:
+
+
+\>povdefine("mycube",povbox(-1,1));
+
+
+Objek yang sudah didefinisikan dapat dipanggil kembali menggunakan povobject().
+
+
+\>c1=povobject("mycube",povlook(red));
+
+
+Kubus kedua diputar, digeser, dan diperbesar ukurannya:
+
+
+\>c2=povobject("mycube",povlook(yellow),translate=[1,1,1], ...  
+\>     rotate=xrotate(10°)+yrotate(10°), scale=1.2);
+
+
+Fungsi povdifference() memotong kubus pertama dengan kubus kedua:
+
+
+\>writeln(povdifference(c1,c2));
+
+
+Sumbu koordinat ditambahkan ke dalam adegan:
+
+
+\>writeAxis(-1.2,1.2,axis=1); ...  
+\>   writeAxis(-1.2,1.2,axis=2); ...  
+\>   writeAxis(-1.2,1.2,axis=4); ...  
+\>   povend();
+
+
+![images/Tugas%204-081.png](images/Tugas%204-081.png)
+
+# Fungsi Implisit
+
+Povray dapat merender permukaan fungsi implisit f(x,y,z)=0 secara langsung dengan
+pencahayaan dan bayangan yang halus.
+
+
+Penulisan fungsi implisit untuk Povray menggunakan sintaks bahasa C (misalnya pow(x,2)
+untuk x^2), bukan sintaks Euler atau Maxima.
+
+
+$$((x^2+y^2-c^2)^2+(z^2-1)^2)*((y^2+z^2-c^2)^2+(x^2-1)^2)*((z^2+x^2-c^2)^2+(y^2-1)^2)=d$$\>povstart(angle=70°,height=50°,zoom=4);
+
+\>writeln(povsurface("(pow(pow(x,2)+pow(y,2)-pow(0.1,2),2)+pow(pow(z,2)-1,2))\*(pow(pow(y,2)+pow(z,2)-pow(0.1,2),2)+pow(pow(x,2)-1,2))\*(pow(pow(z,2)+pow(x,2)-pow(0.1,2),2)+pow(pow(y,2)-1,2))-0.1",povlook(red)));
+
+\>povend();
+
+
+![images/Tugas%204-083.png](images/Tugas%204-083.png)
+
+\>povstart(angle=25°,height=10°); 
+
+\>writeln(povsurface("pow(x,2)+pow(y,2)\*pow(z,2)-1",povlook(blue),povbox(-2,2,"")));
+
+\>povend();
+
+
+![images/Tugas%204-084.png](images/Tugas%204-084.png)
+
+\>povstart(angle=70°,height=50°,zoom=4);
+
+
+Fungsi povsurface() merender permukaan implisit menggunakan ekspresi bertipe C-style.
+
+
+\>writeln(povsurface("pow(x,2)\*y-pow(y,3)-pow(z,2)",povlook(green))); ...  
+\>   writeAxes(); ...  
+\>   povend();
+
+
+![images/Tugas%204-085.png](images/Tugas%204-085.png)
+
+# Objek Jaring (Mesh)
+
+Objek jaring segi tiga (mesh object) dapat dibuat untuk menampilkan permukaan kompleks
+beserta elemen dekoratif tambahan.
+
+
+Contoh berikut memvisualisasikan maksimum fungsi z = x*y dengan batasan kondisi x + y =
+1.
+
+
+\>povstart(angle=-10°,center=[0.5,0.5,0.5],zoom=7);
+
+
+Data jaring yang besar disimpan ke berkas menggunakan perintah #declare. Fungsi
+povtriangles() menggenerasikan kode jaring segi tiga beserta vektor normalnya secara
+otomatis.
+
+
+\>x=0:0.02:1; y=x'; z=x\*y; vx=-y; vy=-x; vz=1;
+
+\>mesh=povtriangles(x,y,z,"",vx,vy,vz);
+
+
+Dua objek cakram (disc) dibuat untuk memotong permukaan jaring menggunakan operasi CSG.
+
+
+\>cl=povdisc([0.5,0.5,0],[1,1,0],2); ...  
+\>   ll=povdisc([0,0,1/4],[0,0,1],2);
+
+
+Bagian jaring di luar cakram dipotong menggunakan povdifference().
+
+
+\>writeln(povdifference(mesh,povunion([cl,ll]),povlook(green)));
+
+
+Irisan antara jaring dan cakram digambar dengan warna berbeda menggunakan
+povintersection().
+
+
+\>writeln(povintersection([mesh,cl],povlook(red))); ...  
+\>   writeln(povintersection([mesh,ll],povlook(gray)));
+
+
+Titik maksimum fungsi ditandai dengan bola kecil menggunakan povpoint().
+
+
+\>writeln(povpoint([1/2,1/2,1/4],povlook(gray),size=2\*defaultpointsize));
+
+
+Sumbu koordinat ditambahkan dengan writeAxes(), dan adegan diakhiri dengan povend().
+
+
+\>writeAxes(0,1,0,1,0,1,d=0.015); ...  
+\>   povend();
+
+
+![images/Tugas%204-086.png](images/Tugas%204-086.png)
+
+# Anaglyph dalam Povray
+
+Efek anaglif 3D pada Povray dibuat dengan merender adegan dari dua posisi kamera yang
+berbeda, lalu menggabungkan kedua gambar PNG menggunakan loadanaglyph().
+
+
+Gunakan kacamata filter merah/sian untuk melihat efek kedalaman 3D.
+
+
+Mode anaglif pada pov3d dapat diaktifkan cukup dengan menambahkan sakelar &gt;anaglyph.
+
+
+\>pov3d("-exp(-x^2-y^2)/2",r=2,height=45°,\>anaglyph, ...  
+\>     center=[0,0,0.5],zoom=3.5);
+
+
+![images/Tugas%204-087.png](images/Tugas%204-087.png)
+
+Untuk adegan kustom, buat fungsi tersendiri yang mendefinisikan adegan. Fungsi tersebut
+kemudian dipanggil oleh povanaglyph().
+
+
+\>function myscene ...
+
+
+      s=povsphere(povc,1);
+      cl=povcylinder(-povz,povz,0.5);
+      clx=povobject(cl,rotate=xrotate(90°));
+      cly=povobject(cl,rotate=yrotate(90°));
+      c=povbox([-1,-1,0],1);
+      un=povunion([cl,clx,cly,c]);
+      obj=povdifference(s,un,povlook(red));
+      writeln(obj);
+      writeAxes();
+    endfunction
+</pre>
+Perintah povanaglyph() menjalankan pembuatan adegan sebanyak dua kali dari dua sudut
+kamera berbeda untuk menghasilkan gambar anaglif.
+
+
+\>povanaglyph("myscene",zoom=4.5);
+
+
+![images/Tugas%204-088.png](images/Tugas%204-088.png)
+
+# Mendefinisikan Objek Sendiri
+
+Program Povray memiliki kemampuan untuk mencetak berbagai elemen spasial yang membentuk
+geometri dasar. Modifikasi konstruksi objek juga dapat dilakukan tanpa batas.
+
+
+Contoh berikut mendefinisikan bentuk torus (donat) di titik asal (0,0,0) menggunakan
+fungsi kustom:
+
+
+\>function povdonat (r1,r2,look="") ...
+
+
+      return "torus {"+r1+","+r2+look+"}";
+    endfunction
+</pre>
+Torus pertama didefinisikan dengan jari-jari r1=0.8 dan r2=0.2:
+
+
+\>t1=povdonat(0.8,0.2)
+
+
+    torus {0.8,0.2}
+
+Torus kedua diputar 90 derajat terhadap sumbu-x dan digeser ke sumbu-x sejauh 0.8:
+
+
+\>t2=povobject(t1,rotate=xrotate(90°),translate=[0.8,0,0])
+
+
+    object { torus {0.8,0.2}
+     rotate 90 *x 
+     translate &lt;0.8,0,0&gt;
+     }
+
+Kedua torus dimasukkan ke dalam adegan Povray dengan efek kilau phong=1:
+
+
+\>povstart(center=[0.4,0,0],angle=0°,zoom=3.8,aspect=1.5); ...  
+\>   writeln(povobject(t1,povlook(green,phong=1))); ...  
+\>   writeln(povobject(t2,povlook(green,phong=1))); ...  
+\>  
+ &gt;povend();  
+
+Jika terjadi kesalahan sintaks saat povend() mengeksekusi Povray, gunakan opsi &lt;exit
+agar jendela Povray tetap terbuka untuk memeriksa pesan kesalahan:
+
+
+ &gt;povend(&lt;exit);  
+
+Opsi ini mempertahankan jendela Povray terbuka jika terjadi galat.
+
+
+\>povend(h=320,w=480);
+
+
+![images/Tugas%204-089.png](images/Tugas%204-089.png)
+
+Contoh berikut memvisualisasikan daerah layak (feasible region) dan titik optimum masalah
+pemrograman linear:
+
+
+$$Ax \le b, \quad x \ge 0, \quad c.x \to \text{Max.}$$Batas-batas ketaksamaan linear didefinisikan sebagai setengah-ruang (half-space).
+
+
+\>A=[10,8,4;5,6,8;6,3,2;9,5,6];
+
+\>b=[10,10,10,10]';
+
+\>c=[1,1,1];
+
+
+Penyelesaian menggunakan algoritma simpleks mengembalikan titik optimum:
+
+
+\>x=simplex(A,b,c,\>max,\>check)'
+
+
+    [0,  1,  0.5]
+
+Setiap bidang pembatas didefinisikan dengan fungsi oneplane():
+
+
+$$a \cdot x \le b$$\>function oneplane (a,b,look="") ...
+
+
+      return povplane(a,b,look)
+    endfunction
+</pre>
+Irisan dari semua bidang pembatas membentuk polihedron daerah layak:
+
+
+\>function adm (A, b, r, look="") ...
+
+
+      ol=[];
+      loop 1 to rows(A); ol=ol|oneplane(A[#],b[#]); end;
+      ol=ol|povbox([0,0,0],[r,r,r]);
+      return povintersection(ol,look);
+    endfunction
+</pre>
+Menampilkan adegan daerah layak beserta titik optimumnya di Povray:
+
+
+\>povstart(angle=120°,center=[0.5,0.5,0.5],zoom=3.5); ...  
+\>   writeln(adm(A,b,2,povlook(green,0.4))); ...  
+\>   writeAxes(0,1.3,0,1.6,0,1.5); ...  
+\>  
+Bola merah ditambahkan untuk menandai lokasi titik optimum:
+
+
+\>writeln(povintersection([povsphere(x,0.5),povplane(c,c.x')], ...  
+\>     povlook(red,0.9)));
+
+
+Vektor panah menunjukkan arah fungsi tujuan:
+
+
+\>writeln(povarrow(x,c\*0.5,povlook(red)));
+
+
+Teks 3D ditambahkan ke adegan menggunakan povtext():
+
+
+\>writeln(povtext("Linear Problem",[0,0.2,1.3],size=0.05,rotate=5°)); ...  
+\>   povend();
+
+
+![images/Tugas%204-092.png](images/Tugas%204-092.png)
+
+# Ringkasan Contoh Lainnya
+
+Menggambar Grafik Fungsi Dua Variabel dalam Bentuk Ekspresi Langsung
+
+
+$$f(x,y)=x^3-y^3$$\>plot3d("x^3-y^3", -4, 4, -4, 4):
+
+
+![images/Tugas%204-094.png](images/Tugas%204-094.png)
+
+Menggambar Grafik Fungsi Dua Variabel yang Rumusnya Disimpan dalam Variabel Ekspresi
+
+
+$$f(x,y)=x^2sin(y)$$\>expr="x^2\*sin(y)";
+
+\>plot3d(expr,-10,10,0,4\*pi):
+
+
+![images/Tugas%204-096.png](images/Tugas%204-096.png)
+
+Menggambar Grafik Fungsi Dua Variabel yang Fungsinya Didefinisikan sebagai Fungsi Numerik
+
+
+$$f(x,y)=x^2+y^2$$\>function f(x,y):=x^2+y^2
+
+\>plot3d("f",-3,3,-3,3):
+
+
+![images/Tugas%204-098.png](images/Tugas%204-098.png)
+
+Menggambar Grafik Fungsi Dua Variabel yang Fungsinya Didefinisikan sebagai Fungsi Simbolik
+
+
+$$f(x,y)=cos(x)sin(y)$$\>function f(x,y)&=cos(x)\*sin(y)
+
+
+    
+                                                cos(x) sin(y)
+    
+
+\>plot3d("f",-pi,pi,-pi,pi):
+
+
+![images/Tugas%204-100.png](images/Tugas%204-100.png)
+
+Menggambar Data x, y, z pada ruang Tiga Dimensi (3D)
+
+
+\>x=linspace(-3,3,40)';
+
+\>y=linspace(-3,3,40);
+
+\>z=exp(-(x^2+y^2));
+
+\>...plot3d(x,y,z):
+
+
+Membuat Gambar Grafik Tiga Dimensi (3D) yang Bersifat Interaktif dan Animasi Grafik 3D
+
+
+$$z(x,y,t)=sin(x+t)cos(y)$$\>clg; for t=0 to 2\*pi step 0.2; plot3d("sin(x+t)\*cos(y)", -pi, pi, -pi, pi, r=2); wait(0.05); end;
+
+
+Menggambar Fungsi Parametrik Tiga Dimensi (3D)
+
+
+$$x(x,y)=cos(x)cos(y)$$$$y(x,y)=sin(x)cos(y)$$$$z(x,y)=sin(y)$$dengan domain x pada [0,2*pi] dan y pada [-2*pi,2*pi]
+
+
+\>plot3d("cos(x)\*cos(y)", "sin(x)\*cos(y)", "sin(y)", 0, 2\*pi, -pi/2, pi/2):
+
+
+![images/Tugas%204-105.png](images/Tugas%204-105.png)
+
+Menggambar Fungsi Implisit Tiga Dimensi (3D)
+
+
+$$x^2+y^2+z^2=4$$\>function f(x,y,z)&= x^2+y^2+z^2-4;
+
+
+\>plot3d("f", \>implicit, r=3):
+
+
+![images/Tugas%204-107.png](images/Tugas%204-107.png)
+
+Menggambar Titik pada Ruang Tiga Dimensi (3D)
+
+
+\>t=linspace(0,4\*pi,80);
+
+\>x=cos(t); y=sin(t); z=t;
+
+\>plot3d(x,y,z, points=true, \>wire):
+
+
+![images/Tugas%204-108.png](images/Tugas%204-108.png)
+
+Mengatur Tampilan, Warna, dan Sudut Pandang Gambar Permukaan Tiga Dimensi (3D)
+
+
+$$f(x,y)=sin(x)cos(y)$$\>plot3d("sin(x)\*cos(y)", -pi, pi, -pi, pi, angle=45, height=35, \>hue):
+
+
+![images/Tugas%204-110.png](images/Tugas%204-110.png)
+
+Menampilkan Kontur dan Bidang Kontur Permukaan Tiga Dimensi (3D)
+
+
+$$f(x,y)=x^2+y^2$$\>plot3d("x^2 + y^2", -2, 2, -2, 2, \>contour, \>cp):
+
+
+![images/Tugas%204-112.png](images/Tugas%204-112.png)
+
+Menggambar Grafik Tiga Dimensi dalam Modus Anaglif
+
+
+$$f(x,y)=sin(x)cos(y)$$\>plot3d("sin(x)\*cos(y)", -pi, pi, -pi, pi, \>anaglyph):
+
+
+![images/Tugas%204-114.png](images/Tugas%204-114.png)
+
+Menggambar Diagram Batang Tiga Dimensi
+
+
+\>M=[1, 3, 2, 5; 4, 2, 6, 3; 2, 5, 1, 4];
+
+\>plot3d(M, \>bar):
+
+
+![images/Tugas%204-115.png](images/Tugas%204-115.png)
+
+Menggambar Permukaan Benda Putar
+
+
+\>clg; plot2d(0, 0, a=0, b=10, c=0, d=10, grid=1, title="Klik 5 titik"); ...  
+\>   x = []; y = []; ...  
+\>   for i=1 to 5; p=mouse(); x=[x,p[1]]; y=[y,p[2]]; plot2d(x, y, a=0, b=10, c=0, d=10, \>add, style="-", color=blue); plot2d(x, y, a=0, b=10, c=0, d=10, \>points, color=red); wait(0); end; ...  
+\>   plot2d(x, y, \>add, style="o-", color=blue); wait(2); ...  
+\>   v = linspace(0, 2\*pi, 60); X = x'; Y = y'\*cos(v); Z = y'\*sin(v); plot3d(X, Y, Z, frame=3, angle=40°, height=25°, \>user):
+
+
+![images/Tugas%204-116.png](images/Tugas%204-116.png)
+
+Menggambar Grafik 3D dengan Povray di EMT
+
+
+\>povstart(angle=40°, height=25°, zoom=3); ...  
+\>   pov3d(X, Y, Z); ...  
+\>   povend();
+
+
+![images/Tugas%204-117.png](images/Tugas%204-117.png)
+
+![images/Tugas%204-118.png](images/Tugas%204-118.png)
+
+# Referensi Contoh Tambahan
+
+Berkas panduan dan contoh pemodelan Povray tambahan dapat ditemukan pada direktori instalasi EMT
+berikut:
+
+
+Examples/Dandelin Spheres
+
+
+Examples/Donat Math
+
+
+Examples/Trefoil Knot
+
+
+Examples/Optimization by Affine Scaling
+
+
