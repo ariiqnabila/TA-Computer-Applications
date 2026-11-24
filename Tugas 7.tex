@@ -1,0 +1,3588 @@
+\documentclass[a4paper,11pt,oneside,enabledeprecatedfontcommands]{scrbook}
+
+% Pengaturan Font dan Bahasa untuk LuaLaTeX
+\usepackage{fontspec}
+\usepackage[indonesian]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage[space]{grffile} % Mendukung nama file gambar yang mengandung spasi seperti "Tugas 7-002.png"
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+\usepackage{hyperref}
+
+\geometry{
+    a4paper,
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+% Definisi warna ala Euler Math Toolbox (EMT)
+\definecolor{eulerpromptcolor}{rgb}{0.6,0.0,0.0}
+\definecolor{euleroutputcolor}{rgb}{0.15,0.15,0.45}
+\definecolor{eulerbg}{rgb}{0.97,0.97,0.98}
+\definecolor{eulerborder}{rgb}{0.82,0.85,0.90}
+
+% Pengaturan Listings untuk Kode EMT
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    breakatwhitespace=false,
+    columns=flexible,
+    keepspaces=true,
+    showstringspaces=false,
+    frame=leftline,
+    framerule=1.5pt,
+    rulecolor=\color{eulerborder},
+    backgroundcolor=\color{eulerbg},
+    xleftmargin=10pt,
+    aboveskip=6pt,
+    belowskip=4pt
+}
+
+% Lingkungan khusus pengganti paket eumat agar kompatibel penuh dengan LuaLaTeX
+\newenvironment{eulernotebook}{}{}
+
+\newcommand{\eulerheading}[1]{\chapter{#1}}
+\newcommand{\eulersubheading}[1]{\section{#1}}
+
+\newenvironment{eulercomment}{\par\medskip\noindent}{\par\medskip}
+\newenvironment{eulerformula}{}{}
+
+\lstnewenvironment{eulerprompt}{
+    \lstset{basicstyle=\ttfamily\small\color{eulerpromptcolor}}
+}{}
+
+\lstnewenvironment{euleroutput}{
+    \lstset{
+        basicstyle=\ttfamily\footnotesize\color{euleroutputcolor},
+        backgroundcolor=\color{white},
+        rulecolor=\color{lightgray}
+    }
+}{}
+
+\lstnewenvironment{eulerudf}{
+    \lstset{basicstyle=\ttfamily\small\color{teal!70!black}}
+}{}
+
+\lstnewenvironment{eulerttcomment}{
+    \lstset{basicstyle=\ttfamily\small\color{darkgray}}
+}{}
+
+% Perintah penampil gambar yang memperbaiki spasi path dan mengabaikan tinggi 0
+\newcommand{\eulerimg}[2]{%
+    \ifnum#1>0
+        \begin{center}
+            \IfFileExists{#2}{%
+                \includegraphics[width=0.72\textwidth,keepaspectratio]{{"#2"}}%
+            }{%
+                \fbox{\parbox{0.7\textwidth}{\centering\small\texttt{Gambar tidak ditemukan: #2}\\ \footnotesize Pastikan folder \texttt{images/} berada satu direktori dengan file \texttt{.tex}.}}%
+            }%
+        \end{center}
+    \fi
+}
+
+\title{\textbf{Statistika dengan Euler Math Toolbox (EMT)}}
+\author{Catatan Praktikum dan Latihan Statistika}
+\date{\today}
+
+\begin{document}
+	
+	\frontmatter
+	\maketitle
+	\tableofcontents
+	
+	\mainmatter
+	\begin{eulernotebook}
+		\eulerheading{EMT untuk Statistika}
+		\begin{eulercomment}
+			Pada notebook ini, kami mendemonstrasikan plot, uji, dan distribusi statistika utama di Euler.
+			
+			Mari kita mulai dengan beberapa statistika deskriptif. Ini bukan pengantar statistika. Jadi Anda
+			mungkin memerlukan beberapa latar belakang untuk memahami detailnya.
+			
+			Misalkan terdapat pengukuran berikut. Kita ingin menghitung nilai rata-rata (mean) dan simpangan baku
+			(standar deviasi) yang terukur.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>M=[1000,1004,998,997,1002,1001,998,1004,998,997]; ...
+			>median(M), mean(M), dev(M)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			999
+			999.9
+			2.72641400622
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>a&=max(M)-min(M); $a // range M
+		\end{eulerprompt}
+		\begin{eulerformula}
+			\[
+			0
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Kita dapat membuat plot box-and-whiskers (boxplot) untuk data tersebut. Dalam kasus kita, tidak ada
+			pencilan (outlier).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>aspect(1.75); boxplot(M):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-002.png}
+		\begin{eulercomment}
+			Kita menghitung probabilitas bahwa suatu nilai lebih besar dari 1005, dengan mengasumsikan
+			nilai-nilai yang diukur berasal dari distribusi normal.
+			
+			Semua fungsi untuk distribusi di Euler diakhiri dengan \texttt{...dis} dan menghitung fungsi distribusi
+			probabilitas kumulatif (CPF).
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\text{normaldis}(x,m,d)=\int_{-\infty}^x \frac{1}{d\sqrt{2\pi}}e^{-\frac{1}{2}\left(\frac{t-m}{d}\right)^2}\,dt.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Kita mencetak hasilnya dalam \% dengan ketelitian 2 digit menggunakan fungsi \texttt{print}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>print((1-normaldis(1005,mean(M),dev(M)))*100,2,unit=" %")
+		\end{eulerprompt}
+		\begin{euleroutput}
+			3.07 %
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk contoh berikutnya, kita mengasumsikan jumlah pria berikut dalam rentang ukuran tertentu.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>r=155.5:4:187.5; v=[22,71,136,169,139,71,32,8];
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Berikut adalah plot dari distribusi tersebut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d(r,v,a=150,b=200,c=0,d=190,bar=1,style="\/"):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-004.png}
+		\begin{eulercomment}
+			Kita dapat memasukkan data mentah tersebut ke dalam sebuah tabel.
+			
+			Tabel adalah metode untuk menyimpan data statistika. Tabel kita harus berisi tiga kolom: Awal
+			rentang, akhir rentang, dan jumlah pria dalam rentang tersebut.
+			
+			Tabel dapat dicetak dengan judul kolom (header). Kita menggunakan vektor string untuk mengatur judul
+			kolomnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>T:=r[1:8]' | r[2:9]' | v'; writetable(T,labc=["BB","BA","Frek"])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			      BB        BA      Frek
+			   155.5     159.5        22
+			   159.5     163.5        71
+			   163.5     167.5       136
+			   167.5     171.5       169
+			   171.5     175.5       139
+			   175.5     179.5        71
+			   179.5     183.5        32
+			   183.5     187.5         8
+		\end{euleroutput}
+		\begin{eulercomment}
+			Jika kita memerlukan nilai rata-rata dan statistik lainnya dari ukuran tersebut, kita perlu
+			menghitung titik tengah dari rentang-rentang tersebut. Kita dapat menggunakan dua kolom pertama dari
+			tabel kita untuk ini.
+			
+			Simbol \texttt{|} digunakan untuk memisahkan kolom, fungsi \texttt{writetable} digunakan untuk menulis tabel,
+			dengan opsi \texttt{labc} untuk menentukan judul kolom.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>(T[,1]+T[,2])/2 // titik tengah setiap interval
+		\end{eulerprompt}
+		\begin{euleroutput}
+			157.5 
+			161.5 
+			165.5 
+			169.5 
+			173.5 
+			177.5 
+			181.5 
+			185.5 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Namun, lebih mudah untuk melipat (fold) rentang tersebut dengan vektor \texttt{[1/2,1/2]}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>M=fold(r,[0.5,0.5])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[157.5,  161.5,  165.5,  169.5,  173.5,  177.5,  181.5,  185.5]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sekarang kita dapat menghitung rata-rata dan simpangan dari sampel dengan frekuensi yang diberikan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>{m,d}=meandev(M,v); m, d,
+		\end{eulerprompt}
+		\begin{euleroutput}
+			169.901234568
+			5.98912964449
+		\end{euleroutput}
+		\begin{eulercomment}
+			Mari kita tambahkan distribusi normal dari nilai-nilai tersebut ke plot batang di atas. Rumus
+			distribusi normal dengan rata-rata $m$ dan simpangan baku $d$ adalah:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			y=\frac{1}{d\sqrt{2\pi}}e^{\frac{-(x-m)^2}{2d^2}}.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Karena nilainya berada di antara 0 dan 1, untuk memplotnya pada plot batang, nilainya harus dikalikan
+			dengan 4 kali jumlah total data.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d("qnormal(x,m,d)*sum(v)*4", ...
+			>  xmin=min(r),xmax=max(r),thickness=3,add=1):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-006.png}
+		
+		\eulerheading{Tabel}
+		\begin{eulercomment}
+			Di dalam direktori notebook ini Anda akan menemukan sebuah file berisi tabel. Data tersebut
+			merepresentasikan hasil survei. Berikut adalah empat baris pertama dari file tersebut. Data ini
+			berasal dari buku daring berbahasa Jerman ``Einführung in die Statistik mit R'' karya A. Handl.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>printfile("table.dat",4);
+		\end{eulerprompt}
+		\begin{euleroutput}
+			Person Sex Age Titanic Evaluation Tip Problem
+			1 m 30 n . 1.80 n
+			2 f 23 y g 1.80 n
+			3 f 26 y g 1.80 y
+		\end{euleroutput}
+		\begin{eulercomment}
+			Tabel ini berisi 7 kolom angka atau token (string). Kita ingin membaca tabel dari file tersebut.
+			Pertama, kita menggunakan terjemahan kita sendiri untuk token-token tersebut.
+			
+			Untuk itu, kita mendefinisikan himpunan token. Fungsi \texttt{strtokens()} mengambil vektor string token dari
+			string yang diberikan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>mf:=["m","f"]; yn:=["y","n"]; ev:=strtokens("g vg m b vb");
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Sekarang kita membaca tabel dengan terjemahan ini.
+			
+			Argumen \texttt{tok2}, \texttt{tok4}, dll. adalah terjemahan dari kolom-kolom tabel. Argumen-argumen ini tidak ada
+			dalam daftar parameter \texttt{readtable()}, sehingga Anda perlu memberikannya dengan \texttt{:=}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>{MT,hd}=readtable("table.dat",tok2:=mf,tok4:=yn,tok5:=ev,tok7:=yn);
+			>load over statistics;
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Untuk pencetakan, kita perlu menentukan himpunan token yang sama. Kita hanya mencetak sepuluh baris
+			pertama.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(MT[1:10],labc=hd,wc=5,tok2:=mf,tok4:=yn,tok5:=ev,tok7:=yn);
+		\end{eulerprompt}
+		\begin{euleroutput}
+			 Person  Sex  Age Titanic Evaluation  Tip Problem
+			      1    m   30       n          .  1.8       n
+			      2    f   23       y          g  1.8       n
+			      3    f   26       y          g  1.8       y
+			      4    m   33       n          .  2.8       n
+			      5    m   37       n          .  1.8       n
+			      6    m   28       y          g  2.8       y
+			      7    f   31       y         vg  2.8       n
+			      8    m   23       n          .  0.8       n
+			      9    f   24       y         vg  1.8       y
+			     10    m   26       n          .  1.8       n
+		\end{euleroutput}
+		\begin{eulercomment}
+			Tanda titik \texttt{"."} merepresentasikan nilai yang tidak tersedia.
+			
+			Jika kita tidak ingin menentukan token untuk terjemahan terlebih dahulu, kita hanya perlu menentukan
+			kolom mana yang berisi token dan bukan angka.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>ctok=[2,4,5,7]; {MT,hd,tok}=readtable("table.dat",ctok=ctok);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Fungsi \texttt{readtable()} sekarang mengembalikan himpunan token.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>tok
+		\end{eulerprompt}
+		\begin{euleroutput}
+			m
+			n
+			f
+			y
+			g
+			vg
+		\end{euleroutput}
+		\begin{eulercomment}
+			Tabel tersebut berisi entri dari file dengan token yang telah diterjemahkan menjadi angka.
+			
+			String khusus \texttt{NA="."} ditafsirkan sebagai ``Not Available'' (Tidak Tersedia), dan mendapatkan nilai \texttt{NAN}
+			(not a number) dalam tabel. Terjemahan ini dapat diubah dengan parameter \texttt{NA} dan \texttt{NAval}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>MT[1]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[1,  1,  30,  2,  NAN,  1.8,  2]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Berikut adalah isi tabel dengan angka yang belum diterjemahkan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(MT,wc=5)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			    1    1   30    2    .  1.8    2
+			    2    3   23    4    5  1.8    2
+			    3    3   26    4    5  1.8    4
+			    4    1   33    2    .  2.8    2
+			    5    1   37    2    .  1.8    2
+			    6    1   28    4    5  2.8    4
+			    7    3   31    4    6  2.8    2
+			    8    1   23    2    .  0.8    2
+			    9    3   24    4    6  1.8    4
+			   10    1   26    2    .  1.8    2
+			   11    3   23    4    6  1.8    4
+			   12    1   32    4    5  1.8    2
+			   13    1   29    4    6  1.8    4
+			   14    3   25    4    5  1.8    4
+			   15    3   31    4    5  0.8    2
+			   16    1   26    4    5  2.8    2
+			   17    1   37    2    .  3.8    2
+			   18    1   38    4    5    .    2
+			   19    3   29    2    .  3.8    2
+			   20    3   28    4    6  1.8    2
+			   21    3   28    4    1  2.8    4
+			   22    3   28    4    6  1.8    4
+			   23    3   38    4    5  2.8    2
+			   24    3   27    4    1  1.8    4
+			   25    1   27    2    .  2.8    4
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk kemudahan, Anda dapat memasukkan keluaran (output) dari \texttt{readtable()} ke dalam sebuah daftar
+			(list).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>Table={{readtable("table.dat",ctok=ctok)}};
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Dengan menggunakan kolom token yang sama dan token yang dibaca dari file, kita dapat mencetak tabel
+			tersebut. Kita dapat menentukan \texttt{ctok}, \texttt{tok}, dll. atau menggunakan daftar \texttt{Table}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(Table,ctok=ctok,wc=5);
+		\end{eulerprompt}
+		\begin{euleroutput}
+			 Person  Sex  Age Titanic Evaluation  Tip Problem
+			      1    m   30       n          .  1.8       n
+			      2    f   23       y          g  1.8       n
+			      3    f   26       y          g  1.8       y
+			      4    m   33       n          .  2.8       n
+			      5    m   37       n          .  1.8       n
+			      6    m   28       y          g  2.8       y
+			      7    f   31       y         vg  2.8       n
+			      8    m   23       n          .  0.8       n
+			      9    f   24       y         vg  1.8       y
+			     10    m   26       n          .  1.8       n
+			     11    f   23       y         vg  1.8       y
+			     12    m   32       y          g  1.8       n
+			     13    m   29       y         vg  1.8       y
+			     14    f   25       y          g  1.8       y
+			     15    f   31       y          g  0.8       n
+			     16    m   26       y          g  2.8       n
+			     17    m   37       n          .  3.8       n
+			     18    m   38       y          g    .       n
+			     19    f   29       n          .  3.8       n
+			     20    f   28       y         vg  1.8       n
+			     21    f   28       y          m  2.8       y
+			     22    f   28       y         vg  1.8       y
+			     23    f   38       y          g  2.8       n
+			     24    f   27       y          m  1.8       y
+			     25    m   27       n          .  2.8       y
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi \texttt{tablecol()} mengembalikan nilai kolom dari tabel, dengan melewati baris mana pun yang memiliki
+			nilai \texttt{NAN} (\texttt{"."} dalam file), serta indeks kolom yang berisi nilai-nilai tersebut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>{c,i}=tablecol(MT,[5,6]);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Kita dapat menggunakan ini untuk mengekstrak kolom dari tabel untuk dijadikan tabel baru.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>j=[1,5,6]; writetable(MT[i,j],labc=hd[j],ctok=[2],tok=tok)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			    Person Evaluation       Tip
+			         2          g       1.8
+			         3          g       1.8
+			         6          g       2.8
+			         7         vg       2.8
+			         9         vg       1.8
+			        11         vg       1.8
+			        12          g       1.8
+			        13         vg       1.8
+			        14          g       1.8
+			        15          g       0.8
+			        16          g       2.8
+			        20         vg       1.8
+			        21          m       2.8
+			        22         vg       1.8
+			        23          g       2.8
+			        24          m       1.8
+		\end{euleroutput}
+		\begin{eulercomment}
+			Tentu saja, kita perlu mengekstrak tabel itu sendiri dari daftar \texttt{Table} dalam kasus ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>MT=Table[1];
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Tentu saja, kita juga dapat menggunakannya untuk menentukan nilai rata-rata dari suatu kolom atau
+			nilai statistika lainnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>mean(tablecol(MT,6))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			2.175
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi \texttt{getstatistics()} mengembalikan elemen-elemen dalam vektor beserta jumlah kemunculannya. Kita
+			menerapkannya pada nilai \texttt{"m"} dan \texttt{"f"} di kolom kedua tabel kita.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>{xu,count}=getstatistics(tablecol(MT,2)); xu, count,
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[1,  3]
+			[12,  13]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita dapat mencetak hasilnya dalam tabel baru.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(count',labr=tok[xu])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			         m        12
+			         f        13
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi \texttt{selecttable()} mengembalikan tabel baru dengan nilai-nilai dalam satu kolom yang dipilih dari
+			vektor indeks. Pertama, kita mencari indeks dari dua nilai kita dalam tabel token.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>v:=indexof(tok,["g","vg"])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[5,  6]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sekarang kita dapat memilih baris-baris tabel yang memiliki salah satu nilai dalam \texttt{v} pada kolom
+			ke-5-nya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>MT1:=MT[selectrows(MT,5,v)]; i:=sortedrows(MT1,5);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Sekarang kita dapat mencetak tabel tersebut, dengan nilai yang telah diekstrak dan diurutkan pada
+			kolom ke-5.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(MT1[i],labc=hd,ctok=ctok,tok=tok,wc=7);
+		\end{eulerprompt}
+		\begin{euleroutput}
+			 Person    Sex    Age Titanic Evaluation    Tip Problem
+			      2      f     23       y          g    1.8       n
+			      3      f     26       y          g    1.8       y
+			      6      m     28       y          g    2.8       y
+			     18      m     38       y          g      .       n
+			     16      m     26       y          g    2.8       n
+			     15      f     31       y          g    0.8       n
+			     12      m     32       y          g    1.8       n
+			     23      f     38       y          g    2.8       n
+			     14      f     25       y          g    1.8       y
+			      9      f     24       y         vg    1.8       y
+			      7      f     31       y         vg    2.8       n
+			     20      f     28       y         vg    1.8       n
+			     22      f     28       y         vg    1.8       y
+			     13      m     29       y         vg    1.8       y
+			     11      f     23       y         vg    1.8       y
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk statistik berikutnya, kita ingin menghubungkan dua kolom dari tabel. Jadi kita mengekstrak
+			kolom 2 dan 4 lalu mengurutkan tabelnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>i=sortedrows(MT,[2,4]);  ...
+			>  writetable(tablecol(MT[i],[2,4])',ctok=[1,2],tok=tok)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			         m         n
+			         m         n
+			         m         n
+			         m         n
+			         m         n
+			         m         n
+			         m         n
+			         m         y
+			         m         y
+			         m         y
+			         m         y
+			         m         y
+			         f         n
+			         f         y
+			         f         y
+			         f         y
+			         f         y
+			         f         y
+			         f         y
+			         f         y
+			         f         y
+			         f         y
+			         f         y
+			         f         y
+			         f         y
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dengan \texttt{getstatistics()}, kita juga dapat menghubungkan jumlah kemunculan di dua kolom tabel satu sama
+			lain.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>MT24=tablecol(MT,[2,4]); ...
+			>{xu1,xu2,count}=getstatistics(MT24[1],MT24[2]); ...
+			>writetable(count,labr=tok[xu1],labc=tok[xu2])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			                   n         y
+			         m         7         5
+			         f         1        12
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sebuah tabel dapat ditulis ke dalam file.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>filename="test.dat"; ...
+			>writetable(count,labr=tok[xu1],labc=tok[xu2],file=filename);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Kemudian kita dapat membaca tabel tersebut dari file.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>{MT2,hd,tok2,hdr}=readtable(filename,>clabs,>rlabs); ...
+			>writetable(MT2,labr=hdr,labc=hd)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			                   n         y
+			         m         7         5
+			         f         1        12
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dan menghapus file tersebut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>fileremove(filename);
+		\end{eulerprompt}
+		
+		\eulerheading{Distribusi}
+		\begin{eulercomment}
+			Dengan \texttt{plot2d}, terdapat metode yang sangat mudah untuk memplot distribusi data eksperimen.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>p=normal(1,1000); // 1000 sampel acak berdistribusi normal p
+			>plot2d(p,distribution=20,style="\/"); // plot sampel acak p
+			>plot2d("qnormal(x,0,1)",add=1): // tambahkan plot distribusi normal standar
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-007.png}
+		\begin{eulercomment}
+			Harap perhatikan perbedaan antara plot batang (sampel) dan kurva normal (distribusi sebenarnya).
+			Masukkan kembali ketiga perintah tersebut untuk melihat hasil pengambilan sampel lainnya.
+			
+			Berikut adalah perbandingan 10 simulasi dari 1000 nilai berdistribusi normal menggunakan apa yang
+			disebut plot kotak (box plot). Plot ini menunjukkan median, kuartil 25\% dan 75\%, nilai minimum dan
+			maksimum, serta pencilan (outlier).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>p=normal(10,1000); boxplot(p):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-008.png}
+		\begin{eulercomment}
+			Untuk menghasilkan bilangan bulat acak, Euler memiliki \texttt{intrandom}. Mari kita simulasikan lemparan dadu
+			dan plot distribusinya.
+			
+			Kita menggunakan fungsi \texttt{getmultiplicities(v,x)}, yang menghitung seberapa sering elemen-elemen \texttt{v}
+			muncul dalam \texttt{x}. Kemudian kita memplot hasilnya menggunakan \texttt{columnsplot()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>k=intrandom(1,6000,6);  ...
+			>columnsplot(getmultiplicities(1:6,k));  ...
+			>ygrid(1000,color=red):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-009.png}
+		\begin{eulercomment}
+			Meskipun \texttt{intrandom(n,m,k)} mengembalikan bilangan bulat berdistribusi seragam dari 1 hingga $k$,
+			dimungkinkan untuk menggunakan distribusi bilangan bulat lainnya dengan \texttt{randpint()}.
+			
+			Pada contoh berikut, probabilitas untuk 1, 2, 3 masing-masing adalah 0.4, 0.1, 0.5.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>randpint(1,1000,[0.4,0.1,0.5]); getmultiplicities(1:3,%)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[378,  102,  520]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Euler dapat menghasilkan nilai acak dari lebih banyak distribusi. Silakan lihat pada referensi.
+			
+			Misalnya, kita mencoba distribusi eksponensial. Variabel acak kontinu $X$ dikatakan memiliki distribusi
+			eksponensial, jika PDF-nya diberikan oleh
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			f_X(x)=\lambda e^{-\lambda x},\quad x>0,\quad \lambda>0,
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			dengan parameter
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\lambda=\frac{1}{\mu},\quad \mu \text{ adalah nilai rata-rata, dan dinotasikan dengan } X \sim \text{Exponential}(\lambda).
+			\]
+		\end{eulerformula}
+		\begin{eulerprompt}
+			>plot2d(randexponential(1,1000,2),>distribution):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-012.png}
+		\begin{eulercomment}
+			Untuk banyak distribusi, Euler dapat menghitung fungsi distribusi dan inversnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d("normaldis",-4,4): 
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-013.png}
+		\begin{eulercomment}
+			Berikut adalah salah satu cara untuk memplot kuantil.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d("qnormal(x,1,1.5)",-4,6);  ...
+			>plot2d("qnormal(x,1,1.5)",a=2,b=5,>add,>filled):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-014.png}
+		\begin{eulerformula}
+			\[
+			\text{normaldis}(x,m,d)=\int_{-\infty}^x \frac{1}{d\sqrt{2\pi}}e^{-\frac{1}{2}\left(\frac{t-m}{d}\right)^2}\,dt.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Probabilitas berada di area hijau adalah sebagai berikut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>normaldis(5,1,1.5)-normaldis(2,1,1.5)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.248662156979
+		\end{euleroutput}
+		\begin{eulercomment}
+			Ini dapat dihitung secara numerik dengan integral berikut.
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\int_2^5 \frac{1}{1.5\sqrt{2\pi}}e^{-\frac{1}{2}\left(\frac{x-1}{1.5}\right)^2}\,dx.
+			\]
+		\end{eulerformula}
+		\begin{eulerprompt}
+			>gauss("qnormal(x,1,1.5)",2,5)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.248662156979
+		\end{euleroutput}
+		\begin{eulercomment}
+			Mari kita bandingkan distribusi binomial dengan distribusi normal yang memiliki rata-rata dan
+			simpangan yang sama. Fungsi \texttt{invbindis()} menyelesaikan interpolasi linear di antara nilai-nilai
+			bilangan bulat.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>invbindis(0.95,1000,0.5), invnormaldis(0.95,500,0.5*sqrt(1000))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			525.516721219
+			526.007419394
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi \texttt{qchidis()} adalah kepadatan (densitas) dari distribusi chi-kuadrat. Seperti biasa, Euler memetakan
+			vektor ke fungsi ini. Dengan demikian kita mendapatkan plot semua distribusi chi-kuadrat dengan
+			derajat 5 hingga 50 dengan mudah melalui cara berikut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d("qchidis(x,(5:5:50)')",0,50):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-017.png}
+		\begin{eulercomment}
+			Euler memiliki fungsi-fungsi yang akurat untuk mengevaluasi distribusi. Mari kita periksa \texttt{chidis()}
+			dengan sebuah integral.
+			
+			Penamaannya diupayakan agar konsisten. Misalnya:
+			\begin{itemize}
+				\item distribusi chi-kuadrat adalah \texttt{chidis()},
+				\item fungsi inversnya adalah \texttt{invchidis()},
+				\item kepadatannya adalah \texttt{qchidis()}.
+			\end{itemize}
+			
+			Komplemen dari distribusi tersebut (ekor atas) adalah \texttt{chicdis()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>chidis(1.5,2), integrate("qchidis(x,2)",0,1.5)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.527633447259
+			0.527633447259
+		\end{euleroutput}
+		
+		\eulerheading{Distribusi Diskrit}
+		\begin{eulercomment}
+			Untuk mendefinisikan distribusi diskrit Anda sendiri, Anda dapat menggunakan metode berikut.
+			
+			Pertama, kita mengatur fungsi distribusinya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>wd = 0|((1:6)+[-0.01,0.01,0,0,0,0])/6
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0,  0.165,  0.335,  0.5,  0.666667,  0.833333,  1]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Artinya adalah bahwa dengan probabilitas \texttt{wd[i+1]-wd[i]} kita menghasilkan nilai acak $i$.
+			
+			Ini hampir merupakan distribusi seragam. Mari kita definisikan pembangkit bilangan acak untuk ini.
+			Fungsi \texttt{find(v,x)} mencari nilai $x$ dalam vektor $v$. Fungsi ini juga bekerja untuk vektor $x$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function wrongdice (n,m) := find(wd,random(n,m))
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Kesalahannya sangat halus sehingga kita baru melihatnya dengan iterasi yang sangat banyak.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>columnsplot(getmultiplicities(1:6,wrongdice(1,1000000))):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-018.png}
+		\begin{eulercomment}
+			Berikut adalah fungsi sederhana untuk memeriksa distribusi seragam dari nilai $1\dots K$ dalam $v$. Kita
+			menerima hasilnya jika untuk semua frekuensi berlaku
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\left|f_i-\frac{1}{K}\right| < \frac{\delta}{\sqrt{n}}.
+			\]
+		\end{eulerformula}
+		\begin{eulerprompt}
+			>function checkrandom (v, delta=1) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			K=max(v); n=cols(v);
+			fr=getfrequencies(v,1:K);
+			return max(fr/n-1/K)<delta/sqrt(n);
+			endfunction
+		\end{eulerudf}
+		\begin{eulercomment}
+			Memang, fungsi tersebut menolak distribusi seragam.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>checkrandom(wrongdice(1,1000000))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dan fungsi tersebut menerima pembangkit acak bawaan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>checkrandom(intrandom(1,1000000,6))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			1
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita dapat menghitung distribusi binomial. Pertama ada \texttt{bindis()}, yang mengembalikan probabilitas
+			$i$ atau kurang keberhasilan dari $n$ percobaan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>bindis(410,1000,0.4)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.751401349654
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi invers Beta digunakan untuk menghitung interval kepercayaan Clopper-Pearson untuk parameter $p$.
+			Tingkat default-nya adalah $\alpha$.
+			
+			Arti dari interval ini adalah bahwa jika $p$ berada di luar interval tersebut, hasil yang diamati yaitu
+			410 dari 1000 adalah jarang terjadi.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>clopperpearson(410,1000)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.37932,  0.441212]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Perintah-perintah berikut adalah cara langsung untuk mendapatkan hasil di atas. Namun untuk $n$ yang
+			besar, penjumlahan langsung tidak akurat dan lambat.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>p=0.4; i=0:410; n=1000; sum(bin(n,i)*p^i*(1-p)^(n-i))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.751401349655
+		\end{euleroutput}
+		\begin{eulercomment}
+			Omong-omong, \texttt{invbindis()} menghitung invers dari distribusi kumulatif binomial.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>invbindis(0.75,1000,0.4)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			409.932733047
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dalam permainan Bridge, kita mengasumsikan 5 kartu yang tersisa (dari 52) di dua tangan (26 kartu).
+			Mari kita hitung probabilitas distribusi yang lebih buruk dari 3:2 (misalnya 0:5, 1:4, 4:1 atau 5:0).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>2*hypergeomsum(1,5,13,26)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.321739130435
+		\end{euleroutput}
+		\begin{eulercomment}
+			Terdapat juga simulasi distribusi multinomial.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>randmultinomial(10,1000,[0.4,0.1,0.5])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			      381           100           519 
+			      376            91           533 
+			      417            80           503 
+			      440            94           466 
+			      406           112           482 
+			      408            94           498 
+			      395           107           498 
+			      399            96           505 
+			      428            87           485 
+			      400            99           501 
+		\end{euleroutput}
+		
+		\eulerheading{Memplot Data}
+		\begin{eulercomment}
+			Untuk memplot data, kita mencoba hasil pemilu Jerman sejak tahun 1990, yang diukur dalam jumlah
+			kursi.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>BW := [ ...
+			>1990,662,319,239,79,8,17; ...
+			>1994,672,294,252,47,49,30; ...
+			>1998,669,245,298,43,47,36; ...
+			>2002,603,248,251,47,55,2; ...
+			>2005,614,226,222,61,51,54; ...
+			>2009,622,239,146,93,68,76; ...
+			>2013,631,311,193,0,63,64];
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Untuk partai-partainya, kita menggunakan string nama.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>P:=["CDU/CSU","SPD","FDP","Gr","Li"];
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Mari kita cetak persentasenya dengan rapi.
+			
+			Pertama kita mengekstrak kolom-kolom yang diperlukan. Kolom 3 hingga 7 adalah kursi masing-masing
+			partai, dan kolom 2 adalah jumlah total kursi. Kolom 1 adalah tahun pemilu.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>BT:=BW[,3:7]; BT:=BT/sum(BT); YT:=BW[,1]';
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Kemudian kita mencetak statistik dalam bentuk tabel. Kita menggunakan nama partai sebagai judul
+			kolom, dan tahun sebagai judul baris. Lebar default untuk kolom adalah \texttt{wc=10}, tetapi kita lebih
+			menyukai tampilan yang lebih rapat. Kolom akan diperlebar untuk label kolom jika diperlukan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(BT*100,wc=6,dc=0,>fixed,labc=P,labr=YT)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			       CDU/CSU   SPD   FDP    Gr    Li
+			  1990      48    36    12     1     3
+			  1994      44    38     7     7     4
+			  1998      37    45     6     7     5
+			  2002      41    42     8     9     0
+			  2005      37    36    10     8     9
+			  2009      38    23    15    11    12
+			  2013      49    31     0    10    10
+		\end{euleroutput}
+		\begin{eulercomment}
+			Perkalian matriks berikut mengekstrak jumlah persentase dari dua partai besar yang menunjukkan bahwa
+			partai-partai kecil telah memperoleh pijakan di parlemen hingga tahun 2009.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>BT1:=(BT.[1;1;0;0;0])'*100
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[84.29,  81.25,  81.1659,  82.7529,  72.9642,  61.8971,  79.8732]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Terdapat juga plot statistika sederhana. Kita menggunakannya untuk menampilkan garis dan titik secara
+			bersamaan. Alternatifnya adalah memanggil \texttt{plot2d} dua kali dengan \texttt{>add}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>statplot(YT,BT1,"b"):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-020.png}
+		\begin{eulercomment}
+			Mendefinisikan beberapa warna untuk masing-masing partai.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>CP:=[rgb(0.5,0.5,0.5),red,yellow,green,rgb(0.8,0,0)];
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Sekarang kita dapat memplot hasil pemilu 2009 dan perubahannya ke dalam satu plot menggunakan \texttt{figure}.
+			Kita dapat menambahkan vektor kolom ke setiap plot.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>figure(2,1);  ...
+			>figure(1); columnsplot(BW[6,3:7],P,color=CP); ...
+			>figure(2); columnsplot(BW[6,3:7]-BW[5,3:7],P,color=CP);  ...
+			>figure(0):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-021.png}
+		\begin{eulercomment}
+			Plot data menggabungkan baris-baris data statistika dalam satu plot.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>J:=BW[,1]'; DP:=BW[,3:7]'; ...
+			>dataplot(YT,BT',color=CP);  ...
+			>labelbox(P,colors=CP,styles="[]",>points,w=0.2,x=0.3,y=0.4):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-022.png}
+		\begin{eulercomment}
+			Plot kolom 3D menunjukkan baris-baris data statistika dalam bentuk kolom. Kita memberikan label untuk
+			baris dan kolom. \texttt{angle} adalah sudut pandang.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>columnsplot3d(BT,scols=P,srows=YT, ...
+			>  angle=30,ccols=CP):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-023.png}
+		\begin{eulercomment}
+			Representasi lainnya adalah plot mosaik. Perhatikan bahwa kolom-kolom plot di sini merepresentasikan
+			kolom-kolom matriks. Karena panjangnya label CDU/CSU, kita mengambil jendela yang lebih kecil dari
+			biasanya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>shrinkwindow(>smaller);  ...
+			>mosaicplot(BT',srows=YT,scols=P,color=CP,style="#"); ...
+			>shrinkwindow():
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-024.png}
+		\begin{eulercomment}
+			Kita juga dapat membuat diagram lingkaran (pie chart). Karena hitam dan kuning membentuk koalisi,
+			kita mengurutkan ulang elemen-elemennya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>i=[1,3,5,4,2]; piechart(BW[6,3:7][i],color=CP[i],lab=P[i]):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-025.png}
+		\begin{eulercomment}
+			Berikut adalah jenis plot lainnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>starplot(normal(1,10)+4,lab=1:10,>rays):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-026.png}
+		\begin{eulercomment}
+			Beberapa plot dalam \texttt{plot2d} sangat baik untuk statistika. Berikut adalah plot impuls dari data acak
+			yang berdistribusi seragam di $[0,1]$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d(makeimpulse(1:10,random(1,10)),>bar):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-027.png}
+		\begin{eulercomment}
+			Namun untuk data yang berdistribusi eksponensial, kita mungkin memerlukan plot logaritmik.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>logimpulseplot(1:10,-log(random(1,10))*10):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-028.png}
+		\begin{eulercomment}
+			Fungsi \texttt{columnsplot()} lebih mudah digunakan, karena hanya memerlukan vektor nilai. Selain itu, fungsi
+			ini dapat mengatur labelnya ke apa pun yang kita inginkan, seperti yang sudah kita demonstrasikan
+			dalam tutorial ini.
+			
+			Berikut adalah aplikasi lain, di mana kita menghitung karakter dalam sebuah kalimat dan memplot
+			statistiknya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>v=strtochar("the quick brown fox jumps over the lazy dog"); ...
+			>w=ascii("a"):ascii("z"); x=getmultiplicities(w,v); ...
+			>cw=[]; for k=w; cw=cw|char(k); end; ...
+			>columnsplot(x,lab=cw,width=0.05):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-029.png}
+		\begin{eulercomment}
+			Dimungkinkan juga untuk mengatur sumbu secara manual.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>n=10; p=0.4; i=0:n; x=bin(n,i)*p^i*(1-p)^(n-i); ...
+			>columnsplot(x,lab=i,width=0.05,<frame,<grid); ...
+			>yaxis(0,0:0.1:1,style="->",>left); xaxis(0,style="."); ...
+			>label("p",0,0.25), label("i",11,0); ...
+			>textbox(["Binomial distribution","with p=0.4"]):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-030.png}
+		\begin{eulercomment}
+			Berikut adalah cara untuk memplot frekuensi angka dalam suatu vektor.
+			
+			Kita membuat vektor bilangan acak bulat 1 hingga 10.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>v:=intrandom(1,10,10)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[8,  5,  8,  8,  6,  8,  8,  3,  5,  5]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kemudian mengekstrak angka-angka unik dalam \texttt{v}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>vu:=unique(v)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[3,  5,  6,  8]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dan memplot frekuensinya dalam plot kolom.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>columnsplot(getmultiplicities(vu,v),lab=vu,style="/"):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-031.png}
+		\begin{eulercomment}
+			Kita ingin mendemonstrasikan fungsi untuk distribusi empiris dari nilai-nilai.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x=normal(1,20);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Fungsi \texttt{empdist(x,vs)} memerlukan larik (array) nilai yang terurut. Jadi kita harus mengurutkan $x$
+			sebelum dapat menggunakannya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>xs=sort(x);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Kemudian kita memplot distribusi empiris dan beberapa batang kepadatan ke dalam satu plot. Alih-alih
+			plot batang untuk distribusinya, kali ini kita menggunakan plot gigi gergaji (sawtooth plot).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>figure(2,1); ...
+			>figure(1); plot2d("empdist",-4,4;xs); ...
+			>figure(2); plot2d(histo(x,v=-4:0.2:4,<bar));  ...
+			>figure(0):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-032.png}
+		\begin{eulercomment}
+			Plot pencar (scatter plot) mudah dibuat di Euler dengan plot titik biasa. Grafik berikut menunjukkan
+			bahwa $X$ dan $X+Y$ jelas berkorelasi positif.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x=normal(1,100); plot2d(x,x+rotright(x),>points,style=".."):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-033.png}
+		\begin{eulercomment}
+			Sering kali, kita ingin membandingkan dua sampel dari distribusi yang berbeda. Hal ini dapat
+			dilakukan dengan plot kuantil-kuantil (quantile-quantile-plot).
+			
+			Sebagai pengujian, kita mencoba distribusi student-$t$ dan distribusi normal.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x=randt(1,1000,5); y=randnormal(1,1000,mean(x),dev(x)); ...
+			>plot2d("x",r=6,style="--",yl="normal",xl="student-t",>vertical); ...
+			>plot2d(sort(x),sort(y),>points,color=red,style="x",>add):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-034.png}
+		\begin{eulercomment}
+			Plot tersebut dengan jelas menunjukkan bahwa nilai-nilai yang berdistribusi normal cenderung lebih
+			kecil di ujung-ujung ekstremnya.
+			
+			Jika kita memiliki dua distribusi dengan ukuran berbeda, kita dapat memperluas yang lebih kecil atau
+			menyusutkan yang lebih besar. Fungsi berikut baik untuk keduanya. Fungsi ini mengambil nilai median
+			dengan persentase antara 0 dan 1.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function medianexpand (x,n) := median(x,p=linspace(0,1,n-1));
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Mari kita bandingkan dua distribusi yang sama.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x=random(1000); y=random(400); ...
+			>plot2d("x",0,1,style="--"); ...
+			>plot2d(sort(medianexpand(x,400)),sort(y),>points,color=red,style="x",>add):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-035.png}
+		
+		\eulerheading{Regresi dan Korelasi}
+		\begin{eulercomment}
+			Regresi linear dapat dilakukan dengan fungsi \texttt{polyfit()} atau berbagai fungsi pencocokan (fit) lainnya.
+			
+			Sebagai permulaan, kita mencari garis regresi untuk data univariat dengan \texttt{polyfit(x,y,1)}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x=1:10; y=[2,3,1,5,6,3,7,8,9,8]; writetable(x'|y',labc=["x","y"])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			         x         y
+			         1         2
+			         2         3
+			         3         1
+			         4         5
+			         5         6
+			         6         3
+			         7         7
+			         8         8
+			         9         9
+			        10         8
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita ingin membandingkan pencocokan tanpa bobot dan berbobot. Pertama, koefisien dari pencocokan
+			linear.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>p=polyfit(x,y,1)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.733333,  0.812121]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sekarang koefisien dengan bobot yang menekankan nilai-nilai terakhir.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>w &= "exp(-(x-10)^2/10)"; pw=polyfit(x,y,1,w=w(x))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[4.71566,  0.38319]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita memasukkan semuanya ke dalam satu plot untuk titik-titik dan garis regresinya, serta untuk bobot
+			yang digunakan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>figure(2,1);  ...
+			>figure(1); statplot(x,y,"b",xl="Regression"); ...
+			>  plot2d("evalpoly(x,p)",>add,color=blue,style="--"); ...
+			>  plot2d("evalpoly(x,pw)",5,10,>add,color=red,style="--"); ...
+			>figure(2); plot2d(w,1,10,>filled,style="/",fillcolor=red,xl=w); ...
+			>figure(0):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-036.png}
+		\begin{eulercomment}
+			Untuk contoh lain, kita membaca data survei mahasiswa, usia mereka, usia orang tua mereka, dan jumlah
+			saudara kandung dari sebuah file.
+			
+			Tabel ini berisi \texttt{"m"} dan \texttt{"f"} di kolom kedua. Kita menggunakan variabel \texttt{tok2} untuk mengatur terjemahan
+			yang tepat alih-alih membiarkan \texttt{readtable()} mengumpulkan terjemahannya sendiri.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>{MS,hd}:=readtable("table1.dat",tok2:=["m","f"]);  ...
+			>writetable(MS,labc=hd,tok2:=["m","f"]);
+		\end{eulerprompt}
+		\begin{euleroutput}
+			    Person       Sex       Age    Mother    Father  Siblings
+			         1         m        29        58        61         1
+			         2         f        26        53        54         2
+			         3         m        24        49        55         1
+			         4         f        25        56        63         3
+			         5         f        25        49        53         0
+			         6         f        23        55        55         2
+			         7         m        23        48        54         2
+			         8         m        27        56        58         1
+			         9         m        25        57        59         1
+			        10         m        24        50        54         1
+			        11         f        26        61        65         1
+			        12         m        24        50        52         1
+			        13         m        29        54        56         1
+			        14         m        28        48        51         2
+			        15         f        23        52        52         1
+			        16         m        24        45        57         1
+			        17         f        24        59        63         0
+			        18         f        23        52        55         1
+			        19         m        24        54        61         2
+			        20         f        23        54        55         1
+		\end{euleroutput}
+		\begin{eulercomment}
+			Bagaimana usia-usia tersebut saling bergantung satu sama lain? Gambaran pertama diperoleh dari plot
+			pencar berpasangan (pairwise scatterplot).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>scatterplots(tablecol(MS,3:5),hd[3:5]):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-037.png}
+		\begin{eulercomment}
+			Jelas terlihat bahwa usia ayah dan ibu saling bergantung satu sama lain. Mari kita tentukan dan plot
+			garis regresinya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>cs:=MS[,4:5]'; ps:=polyfit(cs[1],cs[2],1)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[17.3789,  0.740964]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Model ini jelas keliru. Garis regresinya akan menjadi $s=17+0.74t$, di mana $t$ adalah usia ibu dan $s$
+			adalah usia ayah. Perbedaan usia mungkin sedikit bergantung pada usia, tetapi tidak sebanyak itu.
+			
+			Sebaliknya, kita menduga fungsi seperti $s=a+t$. Maka $a$ adalah rata-rata dari $s-t$. Nilai ini merupakan
+			rata-rata selisih usia antara ayah dan ibu.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>da:=mean(cs[2]-cs[1])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			3.65
+		\end{euleroutput}
+		\begin{eulercomment}
+			Mari kita plot ini ke dalam satu plot pencar.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d(cs[1],cs[2],>points);  ...
+			>plot2d("evalpoly(x,ps)",color=red,style=".",>add);  ...
+			>plot2d("x+da",color=blue,>add):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-038.png}
+		\begin{eulercomment}
+			Berikut adalah plot kotak dari kedua usia tersebut. Ini hanya menunjukkan bahwa usia keduanya
+			berbeda.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>boxplot(cs,["mothers","fathers"]):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-039.png}
+		\begin{eulercomment}
+			Menarik untuk dicatat bahwa selisih mediannya tidak sebesar selisih rata-ratanya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>median(cs[2])-median(cs[1])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			1.5
+		\end{euleroutput}
+		\begin{eulercomment}
+			Koefisien korelasi menunjukkan adanya korelasi positif.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>correl(cs[1],cs[2])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.7588307236
+		\end{euleroutput}
+		\begin{eulercomment}
+			Korelasi peringkat (rank correlation) adalah ukuran untuk urutan yang sama pada kedua vektor.
+			Nilainya juga cukup positif.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>rankcorrel(cs[1],cs[2])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.758925292358
+		\end{euleroutput}
+		
+		\eulerheading{Membuat Fungsi Baru}
+		\begin{eulercomment}
+			Tentu saja, bahasa EMT dapat digunakan untuk memprogram fungsi-fungsi baru. Misalnya, kita
+			mendefinisikan fungsi kemencengan (skewness).
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\text{sk}(x) = \dfrac{\sqrt{n} \sum_i (x_i-m)^3}{\left(\sum_i (x_i-m)^2\right)^{3/2}}
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			di mana $m$ adalah rata-rata dari $x$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function skew (x:vector) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			m=mean(x);
+			return sqrt(cols(x))*sum((x-m)^3)/(sum((x-m)^2))^(3/2);
+			endfunction
+		\end{eulerudf}
+		\begin{eulercomment}
+			Seperti yang Anda lihat, kita dapat dengan mudah menggunakan bahasa matriks untuk mendapatkan
+			implementasi yang sangat singkat dan efisien. Mari kita coba fungsi ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>data=normal(20); skew(normal(10))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			-0.198710316203
+		\end{euleroutput}
+		\begin{eulercomment}
+			Berikut adalah fungsi lain, yang disebut koefisien kemencengan Pearson.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function skew1 (x) := 3*(mean(x)-median(x))/dev(x)
+			>skew1(data)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			-0.0801873249135
+		\end{euleroutput}
+		
+		\eulerheading{Simulasi Monte Carlo}
+		\begin{eulercomment}
+			Euler dapat digunakan untuk mensimulasikan kejadian acak. Kita telah melihat contoh sederhana di
+			atas. Berikut adalah contoh lainnya, yang mensimulasikan 1000 kali lemparan 3 dadu, dan mencari
+			distribusi dari jumlah mata dadunya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>ds:=sum(intrandom(1000,3,6))';  fs=getmultiplicities(3:18,ds)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[5,  17,  35,  44,  75,  97,  114,  116,  143,  116,  104,  53,  40,  22,  13,  6]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita dapat memplotnya sekarang.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>columnsplot(fs,lab=3:18):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-041.png}
+		\begin{eulercomment}
+			Menentukan distribusi yang diharapkan tidaklah begitu mudah. Kita menggunakan rekursi tingkat lanjut
+			untuk ini.
+			
+			Fungsi berikut menghitung banyaknya cara angka $k$ dapat direpresentasikan sebagai penjumlahan dari $n$
+			bilangan dalam rentang 1 hingga $m$. Fungsi ini bekerja secara rekursif dengan cara yang jelas.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function map countways (k; n, m) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			if n==1 then return k>=1 && k<=m
+			else
+			  sum=0; 
+			  loop 1 to m; sum=sum+countways(k-#,n-1,m); end;
+			  return sum;
+			end;
+			endfunction
+		\end{eulerudf}
+		\begin{eulercomment}
+			Berikut adalah hasil untuk lima lemparan dadu bersisi lima dan tiga lemparan dadu bersisi enam.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>countways(5:25,5,5)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[1,  5,  15,  35,  70,  121,  185,  255,  320,  365,  381,  365,  320,  255,  185,  121,  70,  35,
+			15,  5,  1]
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>cw=countways(3:18,3,6)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[1,  3,  6,  10,  15,  21,  25,  27,  27,  25,  21,  15,  10,  6,  3,  1]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita menambahkan nilai harapan ke dalam plot.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d(cw/6^3*1000,>add); plot2d(cw/6^3*1000,>points,>add):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-042.png}
+		\begin{eulercomment}
+			Untuk simulasi lain, simpangan nilai rata-rata dari $n$ variabel acak berdistribusi normal $0\text{--}1$ adalah
+			$1/\sqrt{n}$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>longformat; 1/sqrt(10)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.316227766017
+		\end{euleroutput}
+		\begin{eulercomment}
+			Mari kita periksa hal ini dengan simulasi. Kita menghasilkan 10000 kali 10 vektor acak.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>M=normal(10000,10); dev(mean(M)')
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.319493614817
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>plot2d(mean(M)',>distribution):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-043.png}
+		\begin{eulercomment}
+			Median dari 10 bilangan acak berdistribusi normal $0\text{--}1$ memiliki simpangan yang lebih besar.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>dev(median(M)')
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.374460271535
+		\end{euleroutput}
+		\begin{eulercomment}
+			Karena kita dapat dengan mudah menghasilkan jalan acak (random walk), kita dapat mensimulasikan
+			proses Wiener. Kita mengambil 1000 langkah dari 1000 proses. Kemudian kita memplot simpangan baku dan
+			rata-rata dari langkah ke-$n$ proses-proses ini bersama dengan nilai harapannya dalam warna merah.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>n=1000; m=1000; M=cumsum(normal(n,m)/sqrt(m)); ...
+			>t=(1:n)/n; figure(2,1); ...
+			>figure(1); plot2d(t,mean(M')'); plot2d(t,0,color=red,>add); ...
+			>figure(2); plot2d(t,dev(M')'); plot2d(t,sqrt(t),color=red,>add); ...
+			>figure(0):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-044.png}
+		
+		\eulerheading{Pengujian (Uji Statistik)}
+		\begin{eulercomment}
+			Pengujian adalah alat penting dalam statistika. Di Euler, banyak uji yang telah diimplementasikan.
+			Semua uji ini mengembalikan galat ($p$-value) yang kita terima jika kita menolak hipotesis nol.
+			
+			Sebagai contoh, kita menguji lemparan dadu untuk distribusi seragam. Pada 600 lemparan, kita
+			mendapatkan nilai-nilai berikut, yang kita masukkan ke dalam uji chi-kuadrat.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>chitest([90,103,114,101,103,89],dup(100,6)')
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.498830517952
+		\end{euleroutput}
+		\begin{eulercomment}
+			Uji chi-kuadrat juga memiliki mode yang menggunakan simulasi Monte Carlo untuk menguji statistik.
+			Hasilnya seharusnya hampir sama. Parameter \texttt{>p} menafsirkan vektor $y$ sebagai vektor probabilitas.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>chitest([90,103,114,101,103,89],dup(1/6,6)',>p,>montecarlo)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.526
+		\end{euleroutput}
+		\begin{eulercomment}
+			Galat ini jauh terlalu besar. Jadi kita tidak dapat menolak distribusi seragam. Hal ini tidak
+			membuktikan bahwa dadu kita adil, tetapi kita tidak dapat menolak hipotesis kita.
+			
+			Selanjutnya kita membangkitkan 1000 lemparan dadu menggunakan pembangkit bilangan acak, dan melakukan
+			pengujian yang sama.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>n=1000; t=random([1,n*6]); chitest(count(t*6,6),dup(n,6)')
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.528028118442
+		\end{euleroutput}
+		\begin{eulercomment}
+			Mari kita uji nilai rata-rata 200 dengan uji-$t$ ($t$-test).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>s=200+normal([1,100])*10; ...
+			>ttest(mean(s),dev(s),100,200)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.0218365848476
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi \texttt{ttest()} memerlukan nilai rata-rata, simpangan, jumlah data, dan nilai rata-rata yang akan
+			diuji.
+			
+			Sekarang mari kita periksa dua pengukuran untuk rata-rata yang sama. Kita menolak hipotesis bahwa
+			keduanya memiliki rata-rata yang sama jika hasilnya $< 0.05$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>tcomparedata(normal(1,10),normal(1,10))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.38722000942
+		\end{euleroutput}
+		\begin{eulercomment}
+			Jika kita menambahkan bias pada salah satu distribusi, kita mendapatkan lebih banyak penolakan.
+			Ulangi simulasi ini beberapa kali untuk melihat efeknya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>tcomparedata(normal(1,10),normal(1,10)+2)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			5.60009101758e-07
+		\end{euleroutput}
+		\begin{eulercomment}
+			Pada contoh berikutnya, kita membangkitkan 20 lemparan dadu acak sebanyak 100 kali dan menghitung
+			kemunculan angka satu di dalamnya. Rata-ratanya haruslah $20/6 \approx 3.3$ angka satu.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>R=random(100,20); R=sum(R*6<=1)'; mean(R)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			3.28
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sekarang kita membandingkan jumlah angka satu tersebut dengan distribusi binomial. Pertama kita
+			memplot distribusi angka satu.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d(R,distribution=max(R)+1,even=1,style="\/"):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-045.png}
+		\begin{eulerprompt}
+			>t=count(R,21);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Kemudian kita menghitung nilai harapannya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>n=0:20; b=bin(20,n)*(1/6)^n*(5/6)^(20-n)*100;
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Kita harus mengumpulkan beberapa angka untuk mendapatkan kategori yang cukup besar.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>t1=sum(t[1:2])|t[3:7]|sum(t[8:21]); ...
+			>b1=sum(b[1:2])|b[3:7]|sum(b[8:21]);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Uji chi-kuadrat menolak hipotesis bahwa distribusi kita adalah distribusi binomial jika hasilnya
+			$< 0.05$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>chitest(t1,b1)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.53921579764
+		\end{euleroutput}
+		\begin{eulercomment}
+			Contoh berikut berisi hasil dari dua kelompok orang (katakanlah pria dan wanita) yang memilih salah
+			satu dari enam partai.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>A=[23,37,43,52,64,74;27,39,41,49,63,76];  ...
+			>  writetable(A,wc=6,labr=["m","f"],labc=1:6)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			           1     2     3     4     5     6
+			     m    23    37    43    52    64    74
+			     f    27    39    41    49    63    76
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita ingin menguji independensi pilihan suara terhadap jenis kelamin. Uji tabel $\chi^2$ melakukan hal
+			ini. Hasilnya terlalu besar untuk menolak independensi. Jadi kita tidak dapat mengatakan apakah
+			pilihan suara bergantung pada jenis kelamin berdasarkan data ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>tabletest(A)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.990701632326
+		\end{euleroutput}
+		\begin{eulercomment}
+			Berikut adalah tabel yang diharapkan, jika kita mengasumsikan frekuensi pemilihan yang diamati.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(expectedtable(A),wc=6,dc=1,labr=["m","f"],labc=1:6)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			           1     2     3     4     5     6
+			     m  24.9  37.9  41.9  50.3  63.3  74.7
+			     f  25.1  38.1  42.1  50.7  63.7  75.3
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita dapat menghitung koefisien kontingensi terkoreksi. Karena nilainya sangat dekat dengan 0, kita
+			menyimpulkan bahwa pilihan suara tidak bergantung pada jenis kelamin.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>contingency(A)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.0427225484717
+		\end{euleroutput}
+		
+		\eulerheading{Beberapa Uji Lainnya}
+		\begin{eulercomment}
+			Selanjutnya kita menggunakan analisis varians (uji-$F$) untuk menguji tiga sampel data berdistribusi
+			normal terhadap nilai rata-rata yang sama. Metode ini disebut ANOVA (analysis of variance). Di Euler,
+			fungsi \texttt{varanalysis()} digunakan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x1=[109,111,98,119,91,118,109,99,115,109,94]; mean(x1),
+		\end{eulerprompt}
+		\begin{euleroutput}
+			106.545454545
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>x2=[120,124,115,139,114,110,113,120,117]; mean(x2),
+		\end{eulerprompt}
+		\begin{euleroutput}
+			119.111111111
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>x3=[120,112,115,110,105,134,105,130,121,111]; mean(x3)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			116.3
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>varanalysis(x1,x2,x3)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.0138048221371
+		\end{euleroutput}
+		\begin{eulercomment}
+			Ini berarti kita menolak hipotesis nilai rata-rata yang sama. Kita melakukannya dengan probabilitas
+			galat sebesar 1,3\%.
+			
+			Terdapat juga uji median, yang menolak sampel data dengan distribusi rata-rata yang berbeda dengan
+			menguji median dari sampel gabungan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>a=[56,66,68,49,61,53,45,58,54];
+			>b=[72,81,51,73,69,78,59,67,65,71,68,71];
+			>mediantest(a,b)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.0241724220052
+		\end{euleroutput}
+		\begin{eulercomment}
+			Uji kesamaan lainnya adalah uji peringkat (rank test). Uji ini jauh lebih tajam daripada uji median.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>ranktest(a,b)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.00199969612469
+		\end{euleroutput}
+		\begin{eulercomment}
+			Pada contoh berikut, kedua distribusi memiliki rata-rata yang sama.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>ranktest(random(1,100),random(1,50)*3-1)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.129608141484
+		\end{euleroutput}
+		\begin{eulercomment}
+			Mari kita coba mensimulasikan dua perlakuan $a$ dan $b$ yang diterapkan pada orang yang berbeda.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>a=[8.0,7.4,5.9,9.4,8.6,8.2,7.6,8.1,6.2,8.9];
+			>b=[6.8,7.1,6.8,8.3,7.9,7.2,7.4,6.8,6.8,8.1];
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Uji tanda (signum test) memutuskan apakah $a$ lebih baik daripada $b$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>signtest(a,b)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.0546875
+		\end{euleroutput}
+		\begin{eulercomment}
+			Galat ini terlalu besar. Kita tidak dapat menolak bahwa $a$ sama baiknya dengan $b$.
+			
+			Uji Wilcoxon lebih tajam daripada uji ini, tetapi bergantung pada nilai kuantitatif dari selisihnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>wilcoxon(a,b)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.0296680599405
+		\end{euleroutput}
+		\begin{eulercomment}
+			Mari kita coba dua uji lagi menggunakan deret yang dibangkitkan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>wilcoxon(normal(1,20),normal(1,20)-1)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.0068706451766
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>wilcoxon(normal(1,20),normal(1,20))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.275145971064
+		\end{euleroutput}
+		
+		\eulerheading{Bilangan Acak}
+		\begin{eulercomment}
+			Berikut adalah pengujian untuk pembangkit bilangan acak. Euler menggunakan pembangkit yang sangat
+			baik, sehingga kita tidak perlu mengkhawatirkan adanya masalah.
+			
+			Pertama kita membangkitkan sepuluh juta bilangan acak dalam $[0,1]$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>n:=10000000; r:=random(1,n);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Selanjutnya kita menghitung jarak antara dua bilangan yang kurang dari 0.05.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>a:=0.05; d:=differences(nonzeros(r<a));
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Terakhir, kita memplot berapa kali setiap jarak muncul, dan membandingkannya dengan nilai harapan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>m=getmultiplicities(1:100,d); plot2d(m); ...
+			>  plot2d("n*(1-a)^(x-1)*a^2",color=red,>add):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-046.png}
+		\begin{eulercomment}
+			Hapus data.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>remvalue n;
+		\end{eulerprompt}
+		
+		\eulerheading{Pengantar untuk Pengguna Proyek R}
+		\begin{eulercomment}
+			Jelas bahwa EMT tidak bersaing dengan R sebagai paket statistika. Namun, terdapat banyak prosedur dan
+			fungsi statistika yang tersedia di EMT juga. Jadi EMT dapat memenuhi kebutuhan dasar. Bagaimanapun
+			juga, EMT dilengkapi dengan paket numerik dan sistem aljabar komputer.
+			
+			Notebook ini ditujukan untuk Anda jika Anda sudah terbiasa dengan R, tetapi perlu mengetahui
+			perbedaan sintaks antara EMT dan R. Kami mencoba memberikan gambaran umum tentang hal-hal yang jelas
+			maupun yang kurang jelas yang perlu Anda ketahui.
+			
+			Selain itu, kita melihat cara-cara untuk bertukar data antara kedua sistem tersebut.
+			
+			Perhatikan bahwa bagian ini masih dalam pengembangan.
+		\end{eulercomment}
+		
+		\eulerheading{Sintaks Dasar}
+		\begin{eulercomment}
+			Hal pertama yang Anda pelajari di R adalah membuat vektor. Di EMT, perbedaan utamanya adalah operator
+			\texttt{:} dapat menerima ukuran langkah (step size). Selain itu, operator ini memiliki daya ikat yang rendah.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>n=10; 0:n/20:n-1
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0,  0.5,  1,  1.5,  2,  2.5,  3,  3.5,  4,  4.5,  5,  5.5,  6,  6.5,  7,  7.5,  8,  8.5,  9]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi \texttt{c()} tidak ada. Dimungkinkan untuk menggunakan vektor guna menggabungkan elemen-elemen.
+			
+			Contoh berikut, seperti banyak contoh lainnya, berasal dari ``Introduction to R'' yang disertakan
+			dengan proyek R. Jika Anda membaca PDF tersebut, Anda akan menemukan bahwa saya mengikuti alurnya
+			dalam tutorial ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x=[10.4, 5.6, 3.1, 6.4, 21.7]; [x,0,x]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[10.4,  5.6,  3.1,  6.4,  21.7,  0,  10.4,  5.6,  3.1,  6.4,  21.7]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Operator titik dua dengan ukuran langkah pada EMT digantikan oleh fungsi \texttt{seq()} di R. Kita dapat
+			menulis fungsi ini di EMT.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function seq(a,b,c) := a:b:c; ...
+			>seq(0,-0.1,-1)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0,  -0.1,  -0.2,  -0.3,  -0.4,  -0.5,  -0.6,  -0.7,  -0.8,  -0.9,  -1]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi \texttt{rep()} dari R tidak ada di EMT. Untuk masukan vektor, fungsi tersebut dapat ditulis sebagai
+			berikut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function rep(x:vector,n:index) := flatten(dup(x,n)); ...
+			>rep(x,2)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[10.4,  5.6,  3.1,  6.4,  21.7,  10.4,  5.6,  3.1,  6.4,  21.7]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Perhatikan bahwa \texttt{=} atau \texttt{:=} digunakan untuk penugasan (assignment). Operator \texttt{->} digunakan untuk
+			satuan di EMT.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>125km -> " miles"
+		\end{eulerprompt}
+		\begin{euleroutput}
+			77.6713990297 miles
+		\end{euleroutput}
+		\begin{eulercomment}
+			Operator \texttt{<-} untuk penugasan bagaimanapun juga menyesatkan, dan bukan ide yang baik dari R. Perintah
+			berikut akan membandingkan $a$ dan $-4$ di EMT.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>a=2; a<-4
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0
+		\end{euleroutput}
+		\begin{eulercomment}
+			Di R, \texttt{a<-4<3} berfungsi, tetapi \texttt{a<-4<-3} tidak. Saya juga mengalami ambiguitas serupa di EMT,
+			tetapi mencoba menghilangkannya sedikit demi sedikit.
+			
+			EMT dan R memiliki vektor bertipe boolean. Namun di EMT, angka 0 dan 1 digunakan untuk
+			merepresentasikan false dan true. Di R, nilai true dan false tetap dapat digunakan dalam aritmetika
+			biasa sama seperti di EMT.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x<5, %*x
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0,  0,  1,  0,  0]
+			[0,  0,  3.1,  0,  0]
+		\end{euleroutput}
+		\begin{eulercomment}
+			EMT memunculkan pesan kesalahan (error) atau menghasilkan \texttt{NAN} bergantung pada flag \texttt{errors}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>errors off; 0/0, isNAN(sqrt(-1)), errors on;
+		\end{eulerprompt}
+		\begin{euleroutput}
+			NAN
+			1
+		\end{euleroutput}
+		\begin{eulercomment}
+			String sama saja di R dan EMT. Keduanya menggunakan lokal (locale) saat ini, bukan dalam Unicode.
+			
+			Di R terdapat paket untuk Unicode. Di EMT, string dapat berupa string Unicode. String Unicode dapat
+			diterjemahkan ke pengkodean lokal dan sebaliknya. Selain itu, \texttt{u"..."} dapat berisi entitas HTML.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>u"&#169; Ren&eacut; Grothmann"
+		\end{eulerprompt}
+		\begin{euleroutput}
+			© René Grothmann
+		\end{euleroutput}
+		\begin{eulercomment}
+			Hal berikut mungkin tampil atau tidak tampil dengan benar di sistem Anda sebagai huruf A dengan titik
+			dan garis di atasnya. Hal ini bergantung pada font yang Anda gunakan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>chartoutf([480])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			Ǡ
+		\end{euleroutput}
+		\begin{eulercomment}
+			Penggabungan string dilakukan dengan \texttt{+} atau \texttt{|}. Ini dapat menyertakan angka, yang akan dicetak
+			dalam format saat ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>"pi = "+pi
+		\end{eulerprompt}
+		\begin{euleroutput}
+			pi = 3.14159265359
+		\end{euleroutput}
+		
+		\eulerheading{Pengindeksan}
+		\begin{eulercomment}
+			Sebagian besar waktu, hal ini akan bekerja seperti di R.
+			
+			Namun EMT akan menafsirkan indeks negatif dari bagian belakang vektor, sedangkan R menafsirkan \texttt{x[-n]}
+			sebagai \texttt{x} tanpa elemen ke-$n$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x, x[1:3], x[-2]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[10.4,  5.6,  3.1,  6.4,  21.7]
+			[10.4,  5.6,  3.1]
+			6.4
+		\end{euleroutput}
+		\begin{eulercomment}
+			Perilaku R dapat dicapai di EMT dengan \texttt{drop()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>drop(x,2)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[10.4,  3.1,  6.4,  21.7]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Vektor logika tidak diperlakukan secara berbeda sebagai indeks di EMT, berbeda dengan R. Anda perlu
+			mengekstrak elemen bukan nol terlebih dahulu di EMT.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x, x>5, x[nonzeros(x>5)]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[10.4,  5.6,  3.1,  6.4,  21.7]
+			[1,  1,  0,  1,  1]
+			[10.4,  5.6,  6.4,  21.7]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sama seperti di R, vektor indeks dapat berisi pengulangan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x[[1,2,2,1]]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[10.4,  5.6,  5.6,  10.4]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Namun penamaan untuk indeks tidak dimungkinkan di EMT. Untuk sebuah paket statistika, hal ini sering
+			kali diperlukan guna mempermudah akses ke elemen vektor.
+			
+			Untuk meniru perilaku ini, kita dapat mendefinisikan fungsi seperti berikut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function mysel (v,i,s) := v[indexof(s,i)]; ...
+			>s=["first","second","third","fourth"]; mysel(x,["first","third"],s)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[10.4,  3.1]
+		\end{euleroutput}
+		
+		\eulerheading{Tipe Data}
+		\begin{eulercomment}
+			EMT memiliki tipe data yang lebih tetap dibandingkan R. Jelas bahwa di R terdapat vektor yang dapat
+			bertumbuh. Anda dapat mengatur vektor numerik kosong \texttt{v} dan menetapkan nilai pada elemen \texttt{v[17]}. Hal
+			ini tidak dimungkinkan di EMT.
+			
+			Hal berikut ini agak kurang efisien.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>v=[]; for i=1 to 10000; v=v|i; end;
+		\end{eulerprompt}
+		\begin{eulercomment}
+			EMT sekarang akan menyusun vektor dengan \texttt{v} dan \texttt{i} yang ditambahkan pada tumpukan (stack) dan menyalin
+			vektor tersebut kembali ke variabel global \texttt{v}.
+			
+			Cara yang lebih efisien adalah mendefinisikan vektor terlebih dahulu.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>v=zeros(10000); for i=1 to 10000; v[i]=i; end;
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Untuk mengubah tipe data di EMT, Anda dapat menggunakan fungsi seperti \texttt{complex()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>complex(1:4)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[ 1+0i ,  2+0i ,  3+0i ,  4+0i  ]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Konversi ke string hanya dimungkinkan untuk tipe data dasar. Format saat ini digunakan untuk
+			penggabungan string sederhana. Namun terdapat fungsi seperti \texttt{print()} atau \texttt{frac()}.
+			
+			Untuk vektor, Anda dapat dengan mudah menulis fungsi Anda sendiri.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function tostr (v) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			s="[";
+			loop 1 to length(v);
+			   s=s+print(v[#],2,0);
+			   if #<length(v) then s=s+","; endif;
+			end;
+			return s+"]";
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>tostr(linspace(0,1,10))
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.00,0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90,1.00]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk komunikasi dengan Maxima, terdapat fungsi \texttt{convertmxm()}, yang juga dapat digunakan untuk
+			memformat vektor sebagai keluaran.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>convertmxm(1:10)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[1,2,3,4,5,6,7,8,9,10]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk LaTeX, perintah \texttt{tex} dapat digunakan untuk memperoleh perintah LaTeX.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>tex(&[1,2,3])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			\left[ 1 , 2 , 3 \right] 
+		\end{euleroutput}
+		
+		\eulerheading{Faktor dan Tabel}
+		\begin{eulercomment}
+			Dalam pengantar R terdapat contoh dengan apa yang disebut faktor (factors).
+			
+			Berikut adalah daftar wilayah dari 30 negara bagian.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>austates = ["tas", "sa", "qld", "nsw", "nsw", "nt", "wa", "wa", ...
+			>"qld", "vic", "nsw", "vic", "qld", "qld", "sa", "tas", ...
+			>"sa", "nt", "wa", "vic", "qld", "nsw", "nsw", "wa", ...
+			>"sa", "act", "nsw", "vic", "vic", "act"];
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Misalkan kita memiliki pendapatan yang sesuai di setiap negara bagian.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>incomes = [60, 49, 40, 61, 64, 60, 59, 54, 62, 69, 70, 42, 56, ...
+			>61, 61, 61, 58, 51, 48, 65, 49, 49, 41, 48, 52, 46, ...
+			>59, 46, 58, 43];
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Sekarang, kita ingin menghitung rata-rata pendapatan di wilayah-wilayah tersebut. Sebagai program
+			statistika, R memiliki \texttt{factor()} dan \texttt{tapply()} untuk ini.
+			
+			EMT dapat melakukan ini dengan mencari indeks wilayah dalam daftar wilayah unik.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>auterr=sort(unique(austates)); f=indexofsorted(auterr,austates)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[6,  5,  4,  2,  2,  3,  8,  8,  4,  7,  2,  7,  4,  4,  5,  6,  5,  3,  8,  7,  4,  2,  2,  8,  5,
+			1,  2,  7,  7,  1]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Pada titik tersebut, kita dapat menulis fungsi perulangan (loop) kita sendiri untuk melakukan hal-hal
+			bagi satu faktor saja.
+			
+			Atau kita dapat meniru fungsi \texttt{tapply()} dengan cara berikut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function map tappl (i; f$:call, cat, x) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			u=sort(unique(cat));
+			f=indexof(u,cat);
+			return f$(x[nonzeros(f==indexof(u,i))]);
+			endfunction
+		\end{eulerudf}
+		\begin{eulercomment}
+			Ini agak kurang efisien, karena menghitung wilayah unik untuk setiap $i$, tetapi cara ini berhasil.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>tappl(auterr,"mean",austates,incomes)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[44.5,  57.3333333333,  55.5,  53.6,  55,  60.5,  56,  52.25]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Perhatikan bahwa ini berfungsi untuk setiap vektor wilayah.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>tappl(["act","nsw"],"mean",austates,incomes)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[44.5,  57.3333333333]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sekarang, paket statistika EMT mendefinisikan tabel sama seperti di R. Fungsi \texttt{readtable()} dan
+			\texttt{writetable()} dapat digunakan untuk masukan dan keluaran.
+			
+			Jadi kita dapat mencetak rata-rata pendapatan negara bagian di wilayah-wilayah tersebut dengan cara
+			yang mudah dibaca.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(tappl(auterr,"mean",austates,incomes),labc=auterr,wc=7)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			    act    nsw     nt    qld     sa    tas    vic     wa
+			   44.5  57.33   55.5   53.6     55   60.5     56  52.25
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita juga dapat mencoba meniru perilaku R sepenuhnya.
+			
+			Faktor-faktor tersebut jelas harus disimpan dalam sebuah koleksi (collection) bersama tipe dan
+			kategorinya (negara bagian dan wilayah dalam contoh kita). Untuk EMT, kita menambahkan indeks yang
+			telah dihitung sebelumnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function makef (t) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			## Data faktor
+			## Mengembalikan koleksi dengan data t, data unik, indeks.
+			## Lihat: tapply
+			u=sort(unique(t));
+			return {{t,u,indexofsorted(u,t)}};
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>statef=makef(austates);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Sekarang elemen ketiga dari koleksi akan berisi indeksnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>statef[3]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[6,  5,  4,  2,  2,  3,  8,  8,  4,  7,  2,  7,  4,  4,  5,  6,  5,  3,  8,  7,  4,  2,  2,  8,  5,
+			1,  2,  7,  7,  1]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sekarang kita dapat meniru \texttt{tapply()} dengan cara berikut. Ini akan mengembalikan tabel sebagai koleksi
+			data tabel dan judul kolom.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function tapply (t:vector,tf,f$:call) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			## Membuat tabel dari data dan faktor
+			## tf : keluaran dari makef()
+			## Lihat: makef
+			uf=tf[2]; f=tf[3]; x=zeros(length(uf));
+			for i=1 to length(uf);
+			   ind=nonzeros(f==i);
+			   if length(ind)==0 then x[i]=NAN;
+			   else x[i]=f$(t[ind]);
+			   endif;
+			end;
+			return {{x,uf}};
+			endfunction
+		\end{eulerudf}
+		\begin{eulercomment}
+			Kita tidak menambahkan banyak pemeriksaan tipe di sini. Satu-satunya tindakan pencegahan menyangkut
+			kategori (faktor) tanpa data. Namun sebaiknya tetap dilakukan pemeriksaan terhadap panjang $t$ yang
+			benar dan kebenaran koleksi \texttt{tf}.
+			
+			Tabel ini dapat dicetak sebagai tabel dengan \texttt{writetable()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(tapply(incomes,statef,"mean"),wc=7)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			    act    nsw     nt    qld     sa    tas    vic     wa
+			   44.5  57.33   55.5   53.6     55   60.5     56  52.25
+		\end{euleroutput}
+		
+		\eulerheading{Array (Larik)}
+		\begin{eulercomment}
+			EMT hanya memiliki dua dimensi untuk larik (array). Tipe datanya disebut matriks. Namun, akan mudah
+			untuk menulis fungsi untuk dimensi yang lebih tinggi atau pustaka C untuk hal ini.
+			
+			R memiliki lebih dari dua dimensi. Di R, larik adalah vektor dengan bidang dimensi.
+			
+			Di EMT, vektor adalah matriks dengan satu baris. Vektor dapat diubah menjadi matriks dengan \texttt{redim()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>shortformat; X=redim(1:20,4,5)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			        1         2         3         4         5 
+			        6         7         8         9        10 
+			       11        12        13        14        15 
+			       16        17        18        19        20 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Ekstraksi baris dan kolom, atau sub-matriks, sangat mirip seperti di R.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>X[,2:3]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			        2         3 
+			        7         8 
+			       12        13 
+			       17        18 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Namun, di R dimungkinkan untuk menetapkan daftar indeks tertentu dari vektor ke suatu nilai. Hal yang
+			sama di EMT hanya dimungkinkan dengan perulangan (loop).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function setmatrixvalue (M, i, j, v) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			loop 1 to max(length(i),length(j),length(v))
+			   M[i{#},j{#}] = v{#};
+			end;
+			endfunction
+		\end{eulerudf}
+		\begin{eulercomment}
+			Kita mendemonstrasikan hal ini untuk menunjukkan bahwa matriks diteruskan berdasarkan referensi
+			(passed by reference) di EMT. Jika Anda tidak ingin mengubah matriks asli \texttt{M}, Anda perlu menyalinnya
+			di dalam fungsi.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>setmatrixvalue(X,1:3,3:-1:1,0); X,
+		\end{eulerprompt}
+		\begin{euleroutput}
+			        1         2         0         4         5 
+			        6         0         8         9        10 
+			        0        12        13        14        15 
+			       16        17        18        19        20 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Hasil kali luar (outer product) di EMT hanya dapat dilakukan antar vektor. Hal ini otomatis karena
+			bahasa matriksnya. Satu vektor harus berupa vektor kolom dan yang lainnya berupa vektor baris.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>(1:5)*(1:5)'
+		\end{eulerprompt}
+		\begin{euleroutput}
+			        1         2         3         4         5 
+			        2         4         6         8        10 
+			        3         6         9        12        15 
+			        4         8        12        16        20 
+			        5        10        15        20        25 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dalam PDF pengantar R terdapat contoh yang menghitung distribusi dari $ab-cd$ untuk $a,b,c,d$ yang
+			dipilih secara acak dari 0 hingga $n$. Solusi di R adalah membentuk matriks 4-dimensi dan menjalankan
+			\texttt{table()} di atasnya.
+			
+			Tentu saja, hal ini dapat dicapai dengan perulangan. Namun perulangan tidak efektif di EMT maupun R.
+			Di EMT, kita dapat menulis perulangan dalam bahasa C dan itu akan menjadi solusi tercepat.
+			
+			Namun kita ingin meniru perilaku R. Untuk ini, kita perlu meratakan (flatten) perkalian $ab$ dan
+			membuat matriks dari $ab-cd$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>a=0:6; b=a'; p=flatten(a*b); q=flatten(p-p'); ...
+			>u=sort(unique(q)); f=getmultiplicities(u,q); ...
+			>statplot(u,f,"h"):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-047.png}
+		\begin{eulercomment}
+			Selain multiplisitas eksak, EMT dapat menghitung frekuensi dalam vektor.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>getfrequencies(q,-50:10:50)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0,  23,  132,  316,  602,  801,  333,  141,  53,  0]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Cara termudah untuk memplot ini sebagai distribusi adalah sebagai berikut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d(q,distribution=11):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-048.png}
+		\begin{eulercomment}
+			Namun dimungkinkan juga untuk menghitung terlebih dahulu jumlah kemunculan dalam interval yang
+			dipilih. Tentu saja, perintah berikut menggunakan \texttt{getfrequencies()} secara internal.
+			
+			Karena fungsi \texttt{histo()} mengembalikan frekuensi, kita perlu menskalakannya agar integral di bawah
+			grafik batang bernilai 1.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>{x,y}=histo(q,v=-55:10:55); y=y/sum(y)/differences(x); ...
+			>plot2d(x,y,>bar,style="/"):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-049.png}
+		
+		\eulerheading{Daftar (Lists)}
+		\begin{eulercomment}
+			EMT memiliki dua jenis daftar. Yang pertama adalah daftar global yang dapat diubah (mutable), dan
+			yang lainnya adalah tipe daftar yang tidak dapat diubah (immutable). Kita tidak membahas daftar
+			global di sini.
+			
+			Tipe daftar yang tidak dapat diubah disebut koleksi (collection) di EMT. Ini berperilaku seperti
+			struktur (struct) di C, tetapi elemen-elemennya hanya diberi nomor dan tidak diberi nama.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>L={{"Fred","Flintstone",40,[1990,1992]}}
+		\end{eulerprompt}
+		\begin{euleroutput}
+			Fred
+			Flintstone
+			40
+			[1990,  1992]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Saat ini elemen-elemen tersebut tidak memiliki nama, meskipun nama dapat diatur untuk tujuan khusus.
+			Elemen-elemen tersebut diakses menggunakan nomor.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>(L[4])[2]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			1992
+		\end{euleroutput}
+		
+		\eulerheading{Masukan dan Keluaran File (Membaca dan Menulis Data)}
+		\begin{eulercomment}
+			Anda akan sering ingin mengimpor matriks data dari sumber lain ke EMT. Tutorial ini menjelaskan
+			banyak cara untuk mencapainya. Fungsi sederhananya adalah \texttt{writematrix()} dan \texttt{readmatrix()}.
+			
+			Mari kita demonstrasikan cara membaca dan menulis vektor bilangan real ke dalam sebuah file.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>a=random(1,100); mean(a), dev(a),
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.49815
+			0.28037
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk menulis data ke file, kita menggunakan fungsi \texttt{writematrix()}.
+			
+			Karena pengantar ini kemungkinan besar berada di direktori di mana pengguna tidak memiliki akses
+			tulis, kita menulis data ke direktori home pengguna. Untuk notebook milik sendiri, hal ini tidak
+			diperlukan, karena file data akan ditulis ke direktori yang sama.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>filename="test.dat";
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Sekarang kita menulis vektor kolom \texttt{a'} ke dalam file. Ini menghasilkan satu angka di setiap baris
+			file.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writematrix(a',filename);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Untuk membaca data, kita menggunakan \texttt{readmatrix()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>a=readmatrix(filename)';
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Dan hapus file tersebut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>fileremove(filename);
+			>mean(a), dev(a),
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.49815
+			0.28037
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi \texttt{writematrix()} atau \texttt{writetable()} dapat dikonfigurasi untuk bahasa lain.
+			
+			Misalnya, jika Anda menggunakan sistem Indonesia (tanda desimal dengan koma), Excel Anda memerlukan
+			nilai dengan koma desimal yang dipisahkan oleh titik koma dalam file CSV (default-nya adalah nilai
+			yang dipisahkan koma). File \texttt{"test.csv"} berikut akan muncul di folder Anda saat ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>filename="test.csv"; ...
+			>writematrix(random(5,3),file=filename,separator=",");
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Anda sekarang dapat membuka file ini secara langsung menggunakan Excel berbahasa Indonesia.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>fileremove(filename);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Terkadang kita memiliki string dengan token seperti berikut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>s1:="f m m f m m m f f f m m f";  ...
+			>s2:="f f f m m f f";
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Untuk melakukan tokenisasi ini, kita mendefinisikan vektor token.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>tok:=["f","m"]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			f
+			m
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kemudian kita dapat menghitung berapa kali setiap token muncul dalam string, dan memasukkan hasilnya
+			ke dalam tabel.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>M:=getmultiplicities(tok,strtokens(s1))_ ...
+			>  getmultiplicities(tok,strtokens(s2));
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Tulis tabel dengan judul kolom token.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(M,labc=tok,labr=1:2,wc=8)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			               f       m
+			       1       6       7
+			       2       5       2
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk statistika, EMT dapat membaca dan menulis tabel.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>file="test.dat"; open(file,"w"); ...
+			>writeln("A,B,C"); writematrix(random(3,3)); ...
+			>close();
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Isi file tersebut terlihat seperti ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>printfile(file)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			A,B,C
+			0.7003664386138074,0.1875530821001213,0.3262339279660414
+			0.5926249243193858,0.1522927283984059,0.368140583062521
+			0.8065535209872989,0.7265910840408142,0.7332619844597152
+		\end{euleroutput}
+		\begin{eulercomment}
+			Fungsi \texttt{readtable()} dalam bentuk paling sederhananya dapat membaca ini dan mengembalikan koleksi nilai
+			beserta baris judulnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>L=readtable(file,>list);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Koleksi ini dapat dicetak dengan \texttt{writetable()} ke notebook, atau ke sebuah file.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writetable(L,wc=10,dc=5)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			         A         B         C
+			   0.70037   0.18755   0.32623
+			   0.59262   0.15229   0.36814
+			   0.80655   0.72659   0.73326
+		\end{euleroutput}
+		\begin{eulercomment}
+			Matriks nilai adalah elemen pertama dari \texttt{L}. Perhatikan bahwa \texttt{mean()} di EMT menghitung nilai rata-rata
+			dari baris-baris suatu matriks.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>mean(L[1])
+		\end{eulerprompt}
+		\begin{euleroutput}
+			  0.40472 
+			  0.37102 
+			  0.75547 
+		\end{euleroutput}
+		
+		\eulerheading{File CSV}
+		\begin{eulercomment}
+			Pertama, mari kita tulis sebuah matriks ke dalam file. Untuk keluarannya, kita membuat file di
+			direktori kerja saat ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>file="test.csv";  ...
+			>M=random(3,3); writematrix(M,file);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Berikut adalah isi dari file ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>printfile(file)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.8221197733097619,0.821531098722547,0.7771240608094004
+			0.8482947121863489,0.3237767724883862,0.6501422353377985
+			0.1482301827518109,0.3297459716109594,0.6261901074210923
+		\end{euleroutput}
+		\begin{eulercomment}
+			File CSV ini dapat dibuka pada sistem berbahasa Inggris ke dalam Excel dengan klik ganda. Jika Anda
+			mendapatkan file seperti ini pada sistem berbahasa Jerman, Anda perlu mengimpor data ke Excel dengan
+			memperhatikan tanda titik desimal.
+			
+			Namun titik desimal juga merupakan format default untuk EMT. Anda dapat membaca matriks dari file
+			dengan \texttt{readmatrix()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>readmatrix(file)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			  0.82212   0.82153   0.77712 
+			  0.84829   0.32378   0.65014 
+			  0.14823   0.32975   0.62619 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dimungkinkan untuk menulis beberapa matriks ke dalam satu file. Perintah \texttt{open()} dapat membuka file
+			untuk ditulis dengan parameter \texttt{"w"}. Nilai default-nya adalah \texttt{"r"} untuk membaca.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>open(file,"w"); writematrix(M); writematrix(M'); close();
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Matriks-matriks tersebut dipisahkan oleh baris kosong. Untuk membaca matriksnya, buka file tersebut
+			dan panggil \texttt{readmatrix()} beberapa kali.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>open(file); A=readmatrix(); B=readmatrix(); A==B, close();
+		\end{eulerprompt}
+		\begin{euleroutput}
+			        1         0         0 
+			        0         1         0 
+			        0         0         1 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Di Excel atau program lembar kerja (spreadsheet) serupa, Anda dapat mengekspor matriks sebagai CSV
+			(comma separated values). Di Excel 2007, gunakan ``save as'' dan ``other formats'', lalu pilih ``CSV''.
+			Pastikan tabel saat ini hanya berisi data yang ingin Anda ekspor.
+			
+			Berikut adalah contohnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>printfile("excel-data.csv")
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0;1000;1000
+			1;1051,271096;1072,508181
+			2;1105,170918;1150,273799
+			3;1161,834243;1233,67806
+			4;1221,402758;1323,129812
+			5;1284,025417;1419,067549
+			6;1349,858808;1521,961556
+			7;1419,067549;1632,31622
+			8;1491,824698;1750,6725
+			9;1568,312185;1877,610579
+			10;1648,721271;2013,752707
+		\end{euleroutput}
+		\begin{eulercomment}
+			Seperti yang Anda lihat, sistem berbahasa Jerman saya menggunakan titik koma sebagai pemisah dan koma
+			desimal. Anda dapat mengubahnya di pengaturan sistem atau di Excel, tetapi hal ini tidak diperlukan
+			untuk membaca matriks ke dalam EMT.
+			
+			Cara termudah untuk membaca ini ke dalam Euler adalah \texttt{readmatrix()}. Semua koma digantikan oleh titik
+			dengan parameter \texttt{>comma}. Untuk CSV berbahasa Inggris, cukup hilangkan parameter ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>M=readmatrix("excel-data.csv",>comma)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			        0      1000      1000 
+			        1    1051.3    1072.5 
+			        2    1105.2    1150.3 
+			        3    1161.8    1233.7 
+			        4    1221.4    1323.1 
+			        5      1284    1419.1 
+			        6    1349.9      1522 
+			        7    1419.1    1632.3 
+			        8    1491.8    1750.7 
+			        9    1568.3    1877.6 
+			       10    1648.7    2013.8 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Mari kita plot ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>plot2d(M'[1],M'[2:3],>points,color=[red,green]'):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-050.png}
+		\begin{eulercomment}
+			Terdapat cara yang lebih mendasar untuk membaca data dari file. Anda dapat membuka file dan membaca
+			angka-angkanya baris demi baris. Fungsi \texttt{getvectorline()} akan membaca angka dari satu baris data.
+			Secara default, fungsi ini mengharapkan titik desimal. Namun fungsi ini juga dapat menggunakan koma
+			desimal, jika Anda memanggil \texttt{setdecimaldot(",")} sebelum menggunakan fungsi ini.
+			
+			Fungsi berikut adalah contoh untuk ini. Fungsi akan berhenti di akhir file atau pada baris kosong.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function myload (file) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			open(file);
+			M=[];
+			repeat
+			   until eof();
+			   v=getvectorline(3);
+			   if length(v)>0 then M=M_v; else break; endif;
+			end;
+			return M;
+			close(file);
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>myload(file)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			  0.82212   0.82153   0.77712 
+			  0.84829   0.32378   0.65014 
+			  0.14823   0.32975   0.62619 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dimungkinkan juga untuk membaca semua angka dalam file tersebut dengan \texttt{getvector()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>open(file); v=getvector(10000); close(); redim(v[1:9],3,3)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			  0.82212   0.82153   0.77712 
+			  0.84829   0.32378   0.65014 
+			  0.14823   0.32975   0.62619 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dengan demikian sangat mudah untuk menyimpan vektor nilai, satu nilai di setiap baris, dan membaca
+			kembali vektor ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>v=random(1000); mean(v)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.50303
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>writematrix(v',file); mean(readmatrix(file)')
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.50303
+		\end{euleroutput}
+		
+		\eulerheading{Menggunakan Tabel}
+		\begin{eulercomment}
+			Tabel dapat digunakan untuk membaca atau menulis data numerik. Sebagai contoh, kita menulis tabel
+			dengan judul baris dan kolom ke sebuah file.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>file="test.tab"; M=random(3,3);  ...
+			>open(file,"w");  ...
+			>writetable(M,separator=",",labc=["one","two","three"]);  ...
+			>close(); ...
+			>printfile(file)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			one,two,three
+			      0.09,      0.39,      0.86
+			      0.39,      0.86,      0.71
+			       0.2,      0.02,      0.83
+		\end{euleroutput}
+		\begin{eulercomment}
+			Ini dapat diimpor ke dalam Excel.
+			
+			Untuk membaca file di EMT, kita menggunakan \texttt{readtable()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>{M,headings}=readtable(file,>clabs); ...
+			>writetable(M,labc=headings)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			       one       two     three
+			      0.09      0.39      0.86
+			      0.39      0.86      0.71
+			       0.2      0.02      0.83
+		\end{euleroutput}
+		
+		\eulerheading{Menganalisis Baris}
+		\begin{eulercomment}
+			Anda bahkan dapat mengevaluasi setiap baris secara manual. Misalkan kita memiliki baris dengan format
+			berikut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>line="2020-11-03,Tue,1'114.05"
+		\end{eulerprompt}
+		\begin{euleroutput}
+			2020-11-03,Tue,1'114.05
+		\end{euleroutput}
+		\begin{eulercomment}
+			Pertama kita dapat melakukan tokenisasi pada baris tersebut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>vt=strtokens(line)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			2020-11-03
+			Tue
+			1'114.05
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kemudian kita dapat mengevaluasi setiap elemen baris menggunakan evaluasi yang sesuai.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>day(vt[1]),  ...
+			>indexof(["mon","tue","wed","thu","fri","sat","sun"],tolower(vt[2])),  ...
+			>strrepl(vt[3],"'","")()
+		\end{eulerprompt}
+		\begin{euleroutput}
+			7.3816e+05
+			2
+			1114
+		\end{euleroutput}
+		\begin{eulercomment}
+			Dengan menggunakan ekspresi reguler (regular expressions), dimungkinkan untuk mengekstrak hampir
+			semua informasi dari sebaris data.
+			
+			Misalkan kita memiliki baris berikut dalam sebuah dokumen HTML.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>line="<tr><td>1145.45</td><td>5.6</td><td>-4.5</td><tr>"
+		\end{eulerprompt}
+		\begin{euleroutput}
+			<tr><td>1145.45</td><td>5.6</td><td>-4.5</td><tr>
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk mengekstrak ini, kita menggunakan ekspresi reguler yang mencari:
+			\begin{itemize}
+				\item kurung tutup \texttt{>},
+				\item string apa pun yang tidak berisi tanda kurung dengan sub-kecocokan \texttt{"(...)"},
+				\item kurung buka dan kurung tutup menggunakan solusi terpendek,
+				\item lagi-lagi string apa pun yang tidak berisi tanda kurung,
+				\item dan kurung buka \texttt{<}.
+			\end{itemize}
+			
+			Ekspresi reguler agak sulit dipelajari tetapi sangat ampuh.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>{pos,s,vt}=strxfind(line,">([^<>]+)<.+?>([^<>]+)<");
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Hasilnya adalah posisi kecocokan, string yang cocok, dan vektor string untuk sub-kecocokan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>for k=1:length(vt); vt[k](), end;
+		\end{eulerprompt}
+		\begin{euleroutput}
+			1145.5
+			5.6
+		\end{euleroutput}
+		\begin{eulercomment}
+			Berikut adalah fungsi yang membaca semua item numerik di antara \texttt{<td>} dan \texttt{</td>}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function readtd (line) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			v=[]; cp=0;
+			repeat
+			   {pos,s,vt}=strxfind(line,"<td.*?>(.+?)</td>",cp);
+			   until pos==0;
+			   if length(vt)>0 then v=v|vt[1]; endif;
+			   cp=pos+strlen(s);
+			end;
+			return v;
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>readtd(line+"<td>non-numerical</td>")
+		\end{eulerprompt}
+		\begin{euleroutput}
+			1145.45
+			5.6
+			-4.5
+			non-numerical
+		\end{euleroutput}
+		
+		\eulerheading{Membaca dari Web}
+		\begin{eulercomment}
+			Situs web atau file dengan URL dapat dibuka di EMT dan dapat dibaca baris demi baris.
+			
+			Pada contoh ini, kita membaca versi saat ini dari situs EMT. Kita menggunakan ekspresi reguler untuk
+			memindai \texttt{"Version ..."} dalam sebuah judul.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function readversion () ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			urlopen("http://www.euler-math-toolbox.de/Programs/Changes.html");
+			repeat
+			  until urleof();
+			  s=urlgetline();
+			  k=strfind(s,"Version ",1);
+			  if k>0 then substring(s,k,strfind(s,"<",k)-1), break; endif;
+			end;
+			urlclose();
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>readversion
+		\end{eulerprompt}
+		\begin{euleroutput}
+			Version 2024-01-12
+		\end{euleroutput}
+		
+		\eulerheading{Masukan dan Keluaran Variabel}
+		\begin{eulercomment}
+			Anda dapat menulis variabel dalam bentuk definisi Euler ke sebuah file atau ke baris perintah.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writevar(pi,"mypi");
+		\end{eulerprompt}
+		\begin{euleroutput}
+			mypi = 3.141592653589793;
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sebagai pengujian, kita membuat file Euler di direktori kerja EMT.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>file="test.e"; ...
+			>writevar(random(2,2),"M",file); ...
+			>printfile(file,3)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			M = [ ..
+			0.5991820585590205, 0.7960280262224293;
+			0.5167243983231363, 0.2996684599070898];
+		\end{euleroutput}
+		\begin{eulercomment}
+			Sekarang kita dapat memuat file tersebut. File ini akan mendefinisikan matriks \texttt{M}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>load(file); show M,
+		\end{eulerprompt}
+		\begin{euleroutput}
+			M = 
+			  0.59918   0.79603 
+			  0.51672   0.29967 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Omong-omong, jika \texttt{writevar()} digunakan pada suatu variabel, fungsi tersebut akan mencetak definisi
+			variabel beserta nama variabel ini.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>writevar(M); writevar(inch$)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			M = [ ..
+			0.5991820585590205, 0.7960280262224293;
+			0.5167243983231363, 0.2996684599070898];
+			inch$ = 0.0254;
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita juga dapat membuka file baru atau menambahkan (append) ke file yang sudah ada. Pada contoh ini
+			kita menambahkan ke file yang dibuat sebelumnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>open(file,"a"); ...
+			>writevar(random(2,2),"M1"); ...
+			>writevar(random(3,1),"M2"); ...
+			>close();
+			>load(file); show M1; show M2;
+		\end{eulerprompt}
+		\begin{euleroutput}
+			M1 = 
+			  0.30287   0.15372 
+			   0.7504   0.75401 
+			M2 = 
+			  0.27213 
+			 0.053211 
+			  0.70249 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk menghapus file apa pun gunakan \texttt{fileremove()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>fileremove(file);
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Vektor baris dalam sebuah file tidak memerlukan koma, jika setiap angka berada pada baris baru. Mari
+			kita buat file seperti itu, menulis setiap baris satu per satu dengan \texttt{writeln()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>open(file,"w"); writeln("M = ["); ...
+			>for i=1 to 5; writeln(""+random()); end; ...
+			>writeln("];"); close(); ...
+			>printfile(file)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			M = [
+			0.344851384551
+			0.0807510017715
+			0.876519562911
+			0.754157709472
+			0.688392638934
+			];
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>load(file); M
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.34485,  0.080751,  0.87652,  0.75416,  0.68839]
+		\end{euleroutput}
+		
+		\eulerheading{Materi Lainnya}
+		\begin{eulercomment}
+			Topik lanjutan yang dibahas pada bagian-bagian berikut meliputi:
+			\begin{itemize}
+				\item Ukuran statistika deskriptif tambahan (jangkauan, modus, dan metode pergeseran nilai taksiran),
+				\item Uji kesesuaian distribusi normal dengan kertas probabilitas normal,
+				\item Interval kepercayaan untuk rata-rata dan varians,
+				\item Uji independensi korelasi dan interval kepercayaan koefisien regresi,
+				\item Regresi linear multidimensi (berganda) dan uji ekuivalensi,
+				\item Algoritma pembangkit bilangan acak dan transformasi invers,
+				\item Aplikasi metode Monte Carlo untuk integral lipat dan persamaan diferensial parsial (masalah nilai batas Laplace).
+			\end{itemize}
+		\end{eulercomment}
+		
+		\eulerheading{Ukuran Statistika Deskriptif Tambahan}
+		\begin{eulercomment}
+			Selain rata-rata, median, dan simpangan baku, ukuran deskriptif lain yang sering digunakan adalah
+			jangkauan (range) dan modus. Jangkauan $R$ didefinisikan sebagai selisih antara nilai maksimum dan
+			minimum:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			R = x_{\max} - x_{\min}.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Sedangkan modus adalah nilai data yang muncul dengan frekuensi paling besar. Berikut adalah contoh
+			pengukuran induksi celah udara pada 15 pengeras suara (dalam satuan Tesla).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x = [1.01, 1.02, 1.00, 0.98, 0.99, 1.00, 0.99, 1.01, ...
+			>     1.01, 1.00, 1.00, 1.00, 1.02, 1.00, 1.01];
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Kita dapat menghitung rata-rata, varians sampel $s^2$, median, serta jangkauan $R$ dari sampel tersebut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>xbar = mean(x), s2 = dev(x)^2, med = median(x), R = max(x) - min(x),
+		\end{eulerprompt}
+		\begin{euleroutput}
+			1.0027
+			0.00012095
+			1
+			0.04
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk mencari modus, kita menghitung multiplisitas setiap nilai unik dalam sampel menggunakan fungsi
+			\texttt{unique()} dan \texttt{getmultiplicities()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>u = unique(x); freq = getmultiplicities(u, x);
+			>modus = u[nonzeros(freq == max(freq))]
+		\end{eulerprompt}
+		\begin{euleroutput}
+			1
+		\end{euleroutput}
+		\begin{eulercomment}
+			Untuk bilangan dengan banyak digit yang hanya berbeda pada beberapa digit terakhir, perhitungan
+			rata-rata dan varians dapat disederhanakan menggunakan nilai taksiran awal $x_0$ melalui transformasi
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			z_i = x_i - x_0
+			\]
+		\end{eulerformula}
+		\begin{eulerformula}
+			\[
+			\bar{x} = x_0 + \bar{z}, \qquad s^2 = \frac{\sum_{i=1}^n z_i^2 - n(\bar{x}-x_0)^2}{n-1}.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Mari kita terapkan metode ini dengan memilih
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			x_0 = 1.00.
+			\]
+		\end{eulerformula}
+		\begin{eulerprompt}
+			>x0 = 1.00; z = x - x0; n = length(x);
+			>xbarkode = x0 + mean(z)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			1.0027
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>s2kode = (sum(z^2) - n*(xbarkode - x0)^2) / (n - 1)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.00012095
+		\end{euleroutput}
+		
+		\eulerheading{Uji Kesesuaian dengan Kertas Probabilitas Normal}
+		\begin{eulercomment}
+			Untuk memeriksa secara grafis apakah data sampel berasal dari distribusi normal, kita dapat
+			menggunakan prinsip kertas probabilitas normal (normal probability paper). Jika $X \sim N(\mu, \sigma^2)$,
+			maka fungsi distribusi kumulatifnya memenuhi hubungan linear:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			z = \Phi^{-1}(F(x)) = \frac{x - \mu}{\sigma}.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Dengan demikian, jika frekuensi kumulatif relatif $F_j$ ditransformasikan melalui invers distribusi
+			normal standar $\Phi^{-1}(F_j)$ dan diplot terhadap batas atas kelas $\xi_j$,
+			titik-titik tersebut akan terletak mendekati sebuah garis lurus.
+			
+			Berikut adalah data $n = 125$ pengukuran yang dikelompokkan ke dalam 11 kelas dari 50 hingga 270 dengan
+			lebar kelas $h = 20$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>xi = 70:20:270; // batas atas setiap kelas
+			>h = [1, 1, 2, 9, 15, 22, 30, 27, 9, 6, 3]; // frekuensi absolut
+			>F = cumsum(h) / sum(h); // frekuensi kumulatif relatif
+		\end{eulerprompt}
+		\begin{eulercomment}
+			Karena $\Phi^{-1}(1) = \infty$, kita memplot 10 batas atas kelas pertama terhadap nilai $z_j = \Phi^{-1}(F_j)$
+			menggunakan fungsi \texttt{invnormaldis()}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>z = invnormaldis(F[1:10], 0, 1);
+			>p = polyfit(xi[1:10], z, 1); // pencocokan garis lurus z = p[1] + p[2]*x
+			>plot2d(xi[1:10], z, >points, style="x", color=red, ...
+			>  xl="Batas Atas Kelas", yl="z = invnormaldis(F)"); ...
+			>plot2d("evalpoly(x,p)", 60, 260, color=blue, >add):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-061.png}
+		\begin{eulercomment}
+			Dari kemiringan dan titik potong garis lurus
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			z = -\frac{\mu}{\sigma} + \frac{1}{\sigma}x,
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			kita dapat menaksir parameter $\mu$ dan $\sigma$ secara langsung.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>sigmaest = 1 / p[2], muest = -p[1] / p[2],
+		\end{eulerprompt}
+		\begin{euleroutput}
+			38.986
+			174.88
+		\end{euleroutput}
+		
+		\eulerheading{Interval Kepercayaan untuk Rata-Rata dan Varians}
+		\eulersubheading{1. Interval Kepercayaan Rata-Rata (Varians Populasi $\sigma^2$ Diketahui)}
+		\begin{eulercomment}
+			Jika sampel acak berukuran $n$ diambil dari populasi dengan varians $\sigma^2$ yang diketahui dan tingkat
+			signifikansi $\alpha$, batas kepercayaan untuk nilai harapan $\mu$ adalah:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\bar{x} \pm \frac{\sigma}{\sqrt{n}} z_{1-\alpha/2}.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Berikut adalah fungsi untuk menghitung interval kepercayaan tersebut.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function cimeanknown (x, sigma, alpha=0.05) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			n = length(x);
+			zcrit = invnormaldis(1 - alpha/2, 0, 1);
+			err = zcrit * sigma / sqrt(n);
+			return [mean(x) - err, mean(x) + err];
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>cimeanknown([0.842, 0.846, 0.835, 0.839, 0.843, 0.838], 0.004, 0.05)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.8373,  0.8437]
+		\end{euleroutput}
+		
+		\eulersubheading{2. Interval Kepercayaan Rata-Rata (Varians Populasi $\sigma^2$ Tidak Diketahui)}
+		\begin{eulercomment}
+			Jika populasi berdistribusi normal dan $\sigma^2$ tidak diketahui, kita menggantinya dengan simpangan
+			baku sampel $s$ dan menggunakan kuantil distribusi-$t$ dengan derajat kebebasan $m = n - 1$:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\bar{x} \pm \frac{s}{\sqrt{n}} t_{1-\alpha/2; \, n-1}.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Mari kita terapkan pada sampel 6 hasil pengukuran dengan tingkat signifikansi $\alpha = 5\%$ dan $\alpha = 1\%$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function cimeanunknown (x, alpha=0.05) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			n = length(x);
+			tcrit = invtdis(1 - alpha/2, n - 1);
+			err = tcrit * dev(x) / sqrt(n);
+			return [mean(x) - err, mean(x) + err];
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>sampel = [0.842, 0.846, 0.835, 0.839, 0.843, 0.838];
+			>mean(sampel), dev(sampel),
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.8405
+			0.003937
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>cimeanunknown(sampel, 0.05) // tingkat kepercayaan 95%
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.83637,  0.84463]
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>cimeanunknown(sampel, 0.01) // tingkat kepercayaan 99%
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.83402,  0.84698]
+		\end{euleroutput}
+		
+		\eulersubheading{3. Interval Kepercayaan untuk Varians $\sigma^2$}
+		\begin{eulercomment}
+			Untuk populasi berdistribusi normal, besaran $(n-1)s^2/\sigma^2$ mengikuti distribusi $\chi^2$ dengan derajat kebebasan $m = n - 1$. Interval kepercayaan $(1-\alpha)$ untuk
+			$\sigma^2$ diberikan oleh:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\frac{(n-1)s^2}{\chi^2_{1-\alpha/2; \, n-1}} \le \sigma^2 \le \frac{(n-1)s^2}{\chi^2_{\alpha/2; \, n-1}}.
+			\]
+		\end{eulerformula}
+		\begin{eulerprompt}
+			>function civar (x, alpha=0.05) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			n = length(x);
+			s2 = dev(x)^2;
+			chilower = invchidis(alpha/2, n - 1);
+			chiupper = invchidis(1 - alpha/2, n - 1);
+			return [(n - 1)*s2 / chiupper, (n - 1)*s2 / chilower];
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>civar(sampel, 0.05) // interval kepercayaan 95% untuk varians
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0,  9.3237e-05]
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>sqrt(civar(sampel, 0.05)) // interval kepercayaan 95% untuk simpangan baku
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.0024575,  0.009656]
+		\end{euleroutput}
+		
+		\eulerheading{Uji Independensi Korelasi dan Interval Koefisien Regresi}
+		\eulersubheading{1. Uji Independensi Dua Variabel ($H_0: \rho_{XY} = 0$)}
+		\begin{eulercomment}
+			Untuk menguji apakah dua variabel $X$ dan $Y$ yang berdistribusi normal bivariat saling independen
+			($\rho_{XY} = 0$), kita menghitung statistik uji-$t$ dari koefisien korelasi empiris $r_{xy}$:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			t = \frac{r_{xy}\sqrt{n-2}}{\sqrt{1 - r_{xy}^2}},
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			yang berdistribusi-$t$ dengan derajat kebebasan $m = n - 2$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function correltest (x, y) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			n = length(x);
+			r = correl(x, y);
+			tstat = r * sqrt(n - 2) / sqrt(1 - r^2);
+			pval = 2 * (1 - tdis(abs(tstat), n - 2));
+			return {r, tstat, pval};
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>x = 1:10; y = [2, 3, 1, 5, 6, 3, 7, 8, 9, 8];
+			>{r, tstat, pval} = correltest(x, y);
+			>r, tstat, pval,
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.87175
+			5.0325
+			0.001011
+		\end{euleroutput}
+		\begin{eulercomment}
+			Karena nilai-$p$ jauh lebih kecil dari 0.05, hipotesis nol bahwa $X$ dan $Y$ tidak berkorelasi ditolak.
+		\end{eulercomment}
+		
+		\eulersubheading{2. Interval Kepercayaan untuk Koefisien Regresi Linear}
+		\begin{eulercomment}
+			Pada garis regresi
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			y(x) = \tilde{a} + \tilde{b}x,
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			batas kepercayaan $(1-\alpha)$ untuk kemiringan $\tilde{b}$ dan titik potong $\tilde{a}$ masing-masing
+			dihitung dengan
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\tilde{b} \pm t_{1-\alpha/2; \, n-2} \frac{s_y \sqrt{1 - r_{xy}^2}}{s_x \sqrt{n-2}}, \qquad \tilde{a} \pm t_{1-\alpha/2; \, n-2} \frac{s_y \sqrt{1 - r_{xy}^2} \sqrt{\sum x_i^2}}{s_x \sqrt{n-2} \sqrt{n}}.
+			\]
+		\end{eulerformula}
+		\begin{eulerprompt}
+			>function cireg (x, y, alpha=0.05) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			n = length(x);
+			p = polyfit(x, y, 1); // p[1] = a, p[2] = b
+			r = correl(x, y);
+			sx = dev(x); sy = dev(y);
+			tcrit = invtdis(1 - alpha/2, n - 2);
+			sefactor = sy * sqrt(1 - r^2) / (sx * sqrt(n - 2));
+			errb = tcrit * sefactor;
+			erra = tcrit * sefactor * sqrt(sum(x^2) / n);
+			return [p[1] - erra, p[1] + erra; p[2] - errb, p[2] + errb];
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>cireg(x, y, 0.05) // baris 1: interval untuk a, baris 2: interval untuk b
+		\end{eulerprompt}
+		\begin{euleroutput}
+			  -1.5757    3.0424 
+			  0.43999    1.1843 
+		\end{euleroutput}
+		
+		\eulerheading{Regresi Multidimensi (Berganda)}
+		\begin{eulercomment}
+			Jika variabel tak bebas $Y$ bergantung secara linear pada beberapa fungsi basis $g_j(\underline{x})$,
+			model regresinya ditulis sebagai
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			y = \sum_{j=0}^s a_j g_j(\underline{x}).
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Dengan metode kuadrat terkecil, vektor taksiran koefisien $\tilde{\underline{a}}$
+			diperoleh dengan menyelesaikan sistem persamaan normal:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			G^T G \tilde{\underline{a}} = G^T \underline{f}.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Mari kita selesaikan contoh model
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\tilde{f}(x_1, x_2) = a_0 + a_1 x_1 + a_2 x_2
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			untuk 4 titik pengamatan.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>x1 = [5, 3, 5, 3]';
+			>x2 = [0.5, 0.5, 0.3, 0.3]';
+			>f = [1.5, 3.5, 6.2, 3.2]';
+			>G = ones(4, 1) | x1 | x2
+		\end{eulerprompt}
+		\begin{euleroutput}
+			        1         5       0.5 
+			        1         3       0.5 
+			        1         5       0.3 
+			        1         3       0.3 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Kita menyusun matriks persamaan normal $G^T G$ dan vektor sisi kanan $G^T \underline{f}$,
+			lalu menyelesaikannya menggunakan operator \texttt{\textbackslash}.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>ahat = (G'.G) \ (G'.f)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			        7 
+			     0.25 
+			      -11 
+		\end{euleroutput}
+		\begin{eulercomment}
+			Hasilnya adalah
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\tilde{a}_0 = 7.0, \quad \tilde{a}_1 = 0.25, \quad \text{dan} \quad \tilde{a}_2 = -11.0.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Kita juga dapat menghitung jumlah kuadrat sisaan (residual sum of squares) serta melakukan uji
+			ekuivalensi dengan distribusi-$F$ untuk membandingkan model penuh dengan model tereduksi.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>resfull = f - G.ahat;
+			>SSRfull = sum((resfull^2)')
+		\end{eulerprompt}
+		\begin{euleroutput}
+			6.25
+		\end{euleroutput}
+		\begin{eulercomment}
+			Misalkan kita ingin menguji apakah koefisien $a_2$ dapat diabaikan ($H_0: a_2 = 0$), sehingga model
+			tereduksi hanya menggunakan $x_1$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>Gred = ones(4, 1) | x1;
+			>ared = (Gred'.Gred) \ (Gred'.f);
+			>resred=f-Gred.ared;
+			>SSRred = sum(((resred)^2)');
+			>df1 = cols(G) - cols(Gred); // selisih jumlah parameter = 1
+			>df2 = rows(G) - cols(G); // derajat kebebasan sisaan = 4 - 3 = 1
+			>Fstat = ((SSRred - SSRfull) / df1) / (SSRfull / df2)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.7744
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>pvalF = 1 - fdis(Fstat, df1, df2)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.54058
+		\end{euleroutput}
+		\begin{eulercomment}
+			Karena nilai-$p$ lebih besar dari 0.05, penghapusan variabel $x_2$ tidak memperburuk kecocokan model
+			secara signifikan pada sampel kecil ini.
+		\end{eulercomment}
+		
+		\eulerheading{Algoritma Pembangkit Bilangan Acak}
+		\eulersubheading{1. Metode Kuadrat Tengah (J. von Neumann)}
+		\begin{eulercomment}
+			Metode ini dimulai dari bilangan desimal $z_0 \in (0, 1)$
+			dengan $2n$ digit, mengkuadratkannya sehingga menghasilkan $4n$ digit, lalu mengambil $2n$ digit di bagian
+			tengah sebagai bilangan acak berikutnya.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function midsquare (z0, k, ndigits=4) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			res = zeros(1, k);
+			z = z0;
+			half = ndigits / 2;
+			for i = 1 to k;
+			  res[i] = z;
+			  val = floor(z^2 * 10^(ndigits + half));
+			  z = mod(val, 10^ndigits) / 10^ndigits;
+			end;
+			return res;
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>midsquare(0.1234, 6, 4)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.1234,  0.5227,  0.3215,  0.3362,  0.303,  0.1809]
+		\end{euleroutput}
+		\begin{eulercomment}
+			Metode ini jarang digunakan dalam praktik modern karena deretnya dapat mengalami degenerasi menuju
+			nol.
+		\end{eulercomment}
+		
+		\eulersubheading{2. Metode Kongruensi Linear (Linear Congruential Generator)}
+		\begin{eulercomment}
+			Metode yang jauh lebih luas digunakan adalah rekursi kongruensi:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			z_{i+1} \equiv c \cdot z_i \pmod{m}, \qquad u_i = \frac{z_i}{m}.
+			\]
+		\end{eulerformula}
+		\begin{eulerprompt}
+			>function lcg (z0, c, m, k) ...
+		\end{eulerprompt}
+		\begin{eulerudf}
+			u = zeros(1, k);
+			z = z0;
+			for i = 1 to k;
+			  z = mod(c * z, m);
+			  u[i] = z / m;
+			end;
+			return u;
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>lcg(123, 16807, 2^31 - 1, 8)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			[0.00096264,  0.17915,  0.93945,  0.41397,  0.53037,  0.93198,  0.78649,  0.50036]
+		\end{euleroutput}
+		
+		\eulersubheading{3. Metode Transformasi Invers ($F^{-1}(\xi)$)}
+		\begin{eulercomment}
+			Jika $\xi \sim U(0, 1)$ adalah bilangan acak berdistribusi seragam dan $F(x)$ adalah fungsi distribusi kumulatif kontinu yang
+			memiliki invers, maka
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\eta = F^{-1}(\xi) \quad \text{mengikuti distribusi } F(x).
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Sebagai contoh, untuk distribusi eksponensial
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			F(x) = 1 - e^{-\lambda x},
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			fungsi inversnya adalah
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			F^{-1}(\xi) = -\frac{1}{\lambda}\ln(1 - \xi).
+			\]
+		\end{eulerformula}
+		\begin{eulerprompt}
+			>lambda = 2; xi = random(1, 5000);
+			>eta = -log(1 - xi) / lambda;
+			>plot2d(eta, distribution=25, style="\/"); ...
+			>plot2d("2*exp(-2*x)", 0, max(eta), color=red, thickness=2, >add):
+		\end{eulerprompt}
+		\eulerimg{25}{images/Tugas 7-088.png}
+		
+		\eulerheading{Aplikasi Metode Monte Carlo dalam Matematika Numerik}
+		\eulersubheading{1. Evaluasi Integral Tunggal}
+		\begin{eulercomment}
+			Untuk menghitung integral tentu
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			I = \int_0^1 g(x)\,dx
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			dengan $0 \le g(x) \le 1$, terdapat dua pendekatan Monte Carlo:
+			\begin{itemize}
+				\item \textbf{Metode Frekuensi Relatif (Hit-or-Miss):} Membangkitkan $n$ pasang titik acak $(\xi_i, \eta_i) \in [0, 1]^2$ dan menghitung proporsi titik $m/n$ yang memenuhi $\eta_i \le g(\xi_i)$.
+				\item \textbf{Metode Nilai Rata-Rata:} Menghitung rata-rata fungsi pada titik acak seragam $\xi_i \in [0, 1]$:
+			\end{itemize}
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\int_0^1 g(x)\,dx \approx \frac{1}{n}\sum_{i=1}^n g(\xi_i).
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Mari kita bandingkan kedua metode tersebut untuk menghitung
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\int_0^1 \frac{4}{1 + x^2}\,dx = \pi \approx 3.14159265.
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Karena nilai maksimum integran adalah 4, kita menskalakan fungsi dengan $g(x) = \frac{1}{1+x^2} \in [0, 1]$
+			lalu mengalikan hasilnya dengan 4.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>n = 100000;
+			>xi = random(1, n); eta = random(1, n);
+			>g = 1 / (1 + xi^2);
+			>pihitormiss = 4 * sum(eta <= g) / n
+		\end{eulerprompt}
+		\begin{euleroutput}
+			3.1475
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>pimeanvalue = 4 * mean(g)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			3.1429
+		\end{euleroutput}
+		\begin{eulercomment}
+			Metode nilai rata-rata umumnya memberikan galat yang lebih kecil dibandingkan metode frekuensi
+			relatif untuk jumlah sampel $n$ yang sama.
+		\end{eulercomment}
+		
+		\eulersubheading{2. Evaluasi Integral Lipat Dua}
+		\begin{eulercomment}
+			Untuk menghitung volume
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			V = \iint_S h(x, y)\,dx\,dy
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			pada domain $S = [a, b] \times [c, d]$ dengan $0 \le h(x, y) \le e$, 
+			kita membangkitkan tripel bilangan acak seragam $(u_i, v_i, w_i) \in [0, 1]^3$
+			dan menghitung proporsi titik di bawah permukaan $h(x, y)$.
+			
+			Sebagai contoh, kita hitung
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			V = \int_0^1 \int_0^1 (x^2 + y^2)\,dx\,dy = \frac{2}{3}
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			(dengan batas atas $e = 2$).
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>n = 200000;
+			>u = random(1, n); v = random(1, n); w = random(1, n);
+			>e = 2;
+			>Vhit = e * sum(w <= (u^2 + v^2) / e) / n
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.66031
+		\end{euleroutput}
+		\begin{eulerprompt}
+			>Vmean = mean(u^2 + v^2)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			0.66526
+		\end{euleroutput}
+		
+		\eulersubheading{3. Penyelesaian Masalah Nilai Batas Laplace dengan Random Walk}
+		\begin{eulercomment}
+			Metode Monte Carlo dapat digunakan untuk menghampiri solusi persamaan diferensial parsial Laplace
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			\Delta u = \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			pada domain $G$ dengan syarat batas $u(x, y) = f(x, y)$ pada $\Gamma$.
+			
+			Domain $G$ didiskretisasi menggunakan kisi persegi dengan langkah $h = 1$. Sebuah partikel dimulai dari
+			titik interior $P(x_0, y_0)$ dan bergerak secara acak ke salah satu dari empat titik tetangganya
+			masing-masing dengan probabilitas $1/4$ hingga menyentuh titik batas $R_i \in \Gamma$. Nilai $u(x_0, y_0)$
+			dihampiri oleh rata-rata nilai batas $f(R_i)$ tempat jalan acak berhenti:
+		\end{eulercomment}
+		\begin{eulerformula}
+			\[
+			v(x_0, y_0) \approx \frac{1}{n} \sum_{k=1}^n f(R^{(k)}).
+			\]
+		\end{eulerformula}
+		\begin{eulercomment}
+			Kita uji metode ini pada kisi persegi $0 \le x \le 4, \; 0 \le y \le 4$
+			dengan fungsi batas harmonik $f(x, y) = x + 2y$. Solusi eksak pada titik interior $(2, 1)$ adalah $u(2, 1) = 2 + 2(1) = 4$.
+		\end{eulercomment}
+		\begin{eulerprompt}
+			>function laplacerw (x0, y0, nwalks)
+		\end{eulerprompt}
+		\begin{eulerudf}
+			total = 0;
+			for k = 1 to nwalks;
+			  x = x0; y = y0;
+			  repeat
+			    until (x == 0 || x == 4 || y == 0 || y == 4);
+			    dir = intrandom(1, 1, 4)[1];
+			    if dir == 1 then x = x + 1;
+			    elseif dir == 2 then x = x - 1;
+			    elseif dir == 3 then y = y + 1;
+			    else y = y - 1;
+			    endif;
+			  end;
+			  total = total + (x + 2*y); // evaluasi syarat batas f(x, y) = x + 2y
+			end;
+			return total / nwalks;
+			endfunction
+		\end{eulerudf}
+		\begin{eulerprompt}
+			>laplacerw(2, 1, 5000)
+		\end{eulerprompt}
+		\begin{euleroutput}
+			4.0116
+		\end{euleroutput}
+	\end{eulernotebook}
+\end{document}

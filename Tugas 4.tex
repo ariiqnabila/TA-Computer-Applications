@@ -1,0 +1,1731 @@
+\documentclass[a4paper,11pt,oneside,enabledeprecatedfontcommands]{scrbook}
+
+% Pengaturan Font dan Bahasa untuk LuaLaTeX
+\usepackage{fontspec}
+\usepackage[indonesian]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage[space]{grffile} % Mendukung nama file gambar yang mengandung spasi seperti "Tugas 4-001.png"
+\usepackage{adjustbox}      % Mencegah rumus panjang keluar dari margin kanan
+\usepackage{tikz}           % Pengganti ilustrasi C.a.R. jika file eksternal tidak tersedia
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\geometry{
+    a4paper,
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+\setlist[itemize]{label=-, topsep=2pt, partopsep=0pt, itemsep=2pt}
+\setcounter{tocdepth}{1}
+
+% Lokasi folder gambar
+\graphicspath{{./}{images/}}
+
+% Definisi warna ala Euler Math Toolbox (EMT)
+\definecolor{eulerpromptcolor}{rgb}{0.6,0.0,0.0}
+\definecolor{euleroutputcolor}{rgb}{0.15,0.15,0.45}
+\definecolor{eulerbg}{rgb}{0.97,0.97,0.98}
+\definecolor{eulerborder}{rgb}{0.82,0.85,0.90}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=euleroutputcolor,
+    urlcolor=eulerpromptcolor,
+    pdftitle={Menggambar Plot 3D dengan EMT}
+}
+
+% Pengaturan Listings untuk Kode EMT (rata kiri tanpa indentasi)
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    breakatwhitespace=false,
+    breakindent=0pt,
+    breakautoindent=false,
+    columns=fixed,
+    basewidth=0.52em,
+    keepspaces=true,
+    showstringspaces=false,
+    frame=leftline,
+    framerule=1.5pt,
+    framexleftmargin=6pt,
+    xleftmargin=8pt,
+    xrightmargin=0pt,
+    resetmargins=true,
+    rulecolor=\color{eulerborder},
+    backgroundcolor=\color{eulerbg},
+    aboveskip=6pt,
+    belowskip=4pt,
+    literate={°}{{\textdegree}}1
+}
+
+% Lingkungan khusus pengganti paket eumat agar kompatibel penuh dengan LuaLaTeX
+\newenvironment{eulernotebook}{}{}
+
+\newcommand{\eulerheading}[1]{\chapter{#1}}
+\newcommand{\eulersubheading}[1]{\section{#1}}
+
+\newenvironment{eulercomment}{\par\medskip\noindent}{\par\medskip}
+
+% Otomatis menyesuaikan rumus yang terlalu lebar agar tidak terpotong margin kanan
+\newenvironment{eulerformula}{%
+    \par\medskip\noindent
+    \renewcommand{\[}{\begin{center}\begin{adjustbox}{max width=\textwidth}$\displaystyle}%
+    \renewcommand{\]}{$\end{adjustbox}\end{center}}%
+}{\par\medskip}
+
+\lstnewenvironment{eulerprompt}{
+    \lstset{basicstyle=\ttfamily\small\color{eulerpromptcolor}}
+}{}
+
+\lstnewenvironment{euleroutput}{
+    \lstset{
+        basicstyle=\ttfamily\footnotesize\color{euleroutputcolor},
+        backgroundcolor=\color{white},
+        rulecolor=\color{lightgray}
+    }
+}{}
+
+\lstnewenvironment{eulerudf}{
+    \lstset{basicstyle=\ttfamily\small\color{teal!70!black}}
+}{}
+
+\lstnewenvironment{eulerttcomment}{
+    \lstset{basicstyle=\ttfamily\small\color{darkgray}}
+}{}
+
+% Perintah penampil gambar yang menjaga proporsi rumus kecil (#1 < 10) maupun plot grafik (#1 >= 10)
+\newcommand{\eulerimg}[2]{%
+    \ifnum#1>0
+        \begin{center}
+            \IfFileExists{#2}{%
+                \ifnum#1<10
+                    \includegraphics[width=0.88\textwidth,height=#1\dimexpr 1.75ex\relax,keepaspectratio]{#2}%
+                \else
+                    \includegraphics[width=0.72\textwidth,height=#1\dimexpr 1.85ex\relax,keepaspectratio]{#2}%
+                \fi
+            }{%
+                \fbox{\parbox{0.7\textwidth}{\centering\small\texttt{Gambar tidak ditemukan: \detokenize{#2}}\\ \footnotesize Pastikan folder \texttt{images/} berada satu direktori dengan file \texttt{.tex}.}}%
+            }%
+        \end{center}
+    \fi
+}
+
+\title{\textbf{Menggambar Plot 3D dengan EMT}}
+\subtitle{Panduan Visualisasi Permukaan, Kontur, Plot Implisit, dan Povray pada Euler Math Toolbox}
+\author{Catatan Praktikum dan Latihan Plot 3D}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+\begin{eulernotebook}
+
+\eulerheading{Menggambar Plot 3D dengan EMT}
+\begin{eulercomment}
+Bagian ini merupakan pengantar pembuatan plot 3D di Euler untuk memvisualisasikan fungsi dua variabel.
+
+Euler merender grafik fungsi menggunakan algoritma pengurutan untuk menyembunyikan elemen di latar belakang. Secara umum, Euler menerapkan proyeksi terpusat. Tampilan bawaan mengarah dari kuadran x-y positif
+menuju titik asal (0,0,0). Pengaturan sudut 0° mengarahkan pandangan sejajar sumbu-y. Sudut dan ketinggian pandangan dapat disesuaikan kebutuhan.
+
+Euler mampu memplot:
+\begin{itemize}
+    \item Permukaan dengan efek bayangan, garis kontur, atau rentang ketinggian.
+    \item Kumpulan titik.
+    \item Kurva parametrik.
+    \item Permukaan implisit.
+\end{itemize}
+
+Plot 3D suatu fungsi dipanggil menggunakan perintah \texttt{plot3d}. Cara paling sederhana adalah memplot ekspresi matematika dengan variabel \texttt{x} dan \texttt{y}. Parameter \texttt{r} digunakan untuk mengatur rentang area plot di sekitar
+titik asal (0,0).
+\end{eulercomment}
+\begin{eulerprompt}
+>aspect(1.5); plot3d("x^2+sin(y)",-5,5,0,6*pi):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-001.png}
+\begin{eulerprompt}
+>plot3d("x^2+x*sin(y)",-5,5,0,6*pi):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-002.png}
+\begin{eulercomment}
+Modifikasi parameter grafik tersebut agar menghasilkan kurva lengkung atau melingkar pada bidang
+horizontal maupun vertikal, lalu tentukan fungsi matematisnya.
+\end{eulercomment}
+\begin{eulerprompt}
+>remvalue x, y
+>plot3d("x*cos(y)", "x*sin(y)", "(x*cos(y))^2 + (x*cos(y))*sin(x*sin(y))", 0, 5, 0, 2*pi):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-003.png}
+\begin{eulerprompt}
+>plot3d("sin(sqrt(x^2+y^2))*cos(y)", -5, 5, -5, 5):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-004.png}
+\begin{eulerprompt}
+>plot3d("(4+cos(y))*cos(x)", "(4+cos(y))*sin(x)", "sin(y)+sin(x)", 0, 2*pi, 0, 2*pi):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-005.png}
+
+\eulerheading{Fungsi Dua Variabel}
+\begin{eulercomment}
+Pembuatan grafik fungsi dapat dilakukan menggunakan:
+\begin{itemize}
+    \item Ekspresi matematika dengan variabel \texttt{x} dan \texttt{y}.
+    \item Pemanggilan nama fungsi dua variabel.
+    \item Matriks data numerik.
+\end{itemize}
+
+Tampilan standar grafik berupa jaring kawat dengan warna berbeda di kedua sisinya. Nilai bawaan
+interval jaring adalah 10, dan keseluruhan permukaan dibentuk oleh poligon 40x40. Pengaturan ini
+dapat diubah:
+\begin{itemize}
+    \item \texttt{n=40}, \texttt{n=[40,40]}: Jumlah perulangan poligon pada setiap sumbu.
+    \item \texttt{grid=10}, \texttt{grid=[10,10]}: Jumlah interval garis jaring pada setiap sumbu.
+\end{itemize}
+
+Contoh berikut menerapkan nilai parameter bawaan \texttt{n=40} dan \texttt{grid=10}.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2+y^2"):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-006.png}
+\begin{eulercomment}
+Interaksi grafik dengan pengguna dilakukan dengan menambahkan parameter \texttt{>user}. Pengguna dapat
+menggunakan tombol-tombol berikut:
+\begin{itemize}
+    \item Tombol panah (kiri, kanan, atas, bawah): Memutar sudut pandang.
+    \item Tombol \texttt{+} dan \texttt{-}: Memperbesar atau memperkecil skala visual grafik.
+    \item Tombol \texttt{a}: Menampilkan grafik dalam mode anaglif.
+    \item Tombol \texttt{l}: Menyalakan atau mematikan rotasi sumber cahaya otomatis.
+    \item Spasi: Mereset tampilan ke pengaturan sudut pandang awal.
+    \item Return/Enter: Menutup sesi interaksi dan melanjutkan eksekusi program.
+\end{itemize}
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("exp(-x^2+y^2)",>user, ...
+>title="Putar dengan tombol panah (tekan return untuk selesai)"):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-007.png}
+\begin{eulercomment}
+Batas koordinat grafik fungsi dapat diubah menggunakan parameter berikut:
+\begin{itemize}
+    \item \texttt{a,b}: Batas minimum dan maksimum nilai pada sumbu-x.
+    \item \texttt{c,d}: Batas minimum dan maksimum nilai pada sumbu-y.
+    \item \texttt{r}: Area simetris berupa bujur sangkar di sekitar titik asal (0,0).
+    \item \texttt{n}: Jumlah titik persilangan atau interval dalam grid plot.
+\end{itemize}
+
+Parameter lain tersedia untuk memodifikasi skala fungsi atau rasio geometri grafik:
+\begin{itemize}
+    \item \texttt{fscale}: Memodifikasi rentang ukuran fungsi pada sumbu-z (defaultnya menggunakan \texttt{<fscale}).
+    \item \texttt{scale}: Angka tunggal atau vektor 1x2 penentu rasio pelebaran arah x dan y.
+    \item \texttt{frame}: Menentukan jenis bingkai pembatas grafik (nilai bawaan: 1).
+\end{itemize}
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("exp(-(x^2+y^2)/5)",r=10,n=80,fscale=4,scale=1.2,frame=3,>user):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-008.png}
+\begin{eulercomment}
+Proyeksi kamera diatur melalui parameter berikut:
+\begin{itemize}
+    \item \texttt{distance}: Jarak kamera virtual ke objek grafik.
+    \item \texttt{zoom}: Faktor perbesaran tampilan.
+    \item \texttt{angle}: Sudut rotasi sumbu-z dalam radian, diukur dari sumbu-y negatif.
+    \item \texttt{height}: Sudut elevasi kamera dari bidang alas dalam radian.
+\end{itemize}
+
+Pengaturan kamera saat ini dapat diperiksa atau diubah dengan perintah \texttt{view()}. Perintah
+ini mengembalikan matriks pengaturan kamera.
+\end{eulercomment}
+\begin{eulerprompt}
+>view
+\end{eulerprompt}
+\begin{euleroutput}
+[5,  2.6,  2,  0.4]
+\end{euleroutput}
+\begin{eulercomment}
+Mengatur jarak kamera yang kecil menghilangkan perlunya pembesaran (zoom) tinggi,
+menghasilkan efek proyeksi sudut lebar.
+
+Contoh berikut menggunakan sudut (\texttt{angle}) pi/2 dan elevasi (\texttt{height}) 0, sehingga kamera
+melihat tepat dari sumbu-y negatif. Label indikator untuk sumbu-y secara otomatis tidak
+ditampilkan.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2+y",distance=3,zoom=1,angle=pi/2,height=0):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-009.png}
+\begin{eulercomment}
+Secara standar, pusat pandangan mengarah ke titik tengah kubus pembatas. Pusat pandangan
+ini dapat digeser dengan parameter \texttt{center}.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^4+y^2",a=0,b=1,c=-1,d=1,angle=-20°,height=20°, ...
+>center=[0.4,0,0],zoom=5):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-010.png}
+\begin{eulercomment}
+Grafik 3D disesuaikan otomatis agar muat ke dalam kubus standar. Hal ini memudahkan
+penyesuaian tanpa perlu mengatur jarak kamera atau zoom secara manual saat rentang skala
+bervariasi. Penanda label angka akan mengindikasikan nilai absolut riil pada grafik.
+
+Jika normalisasi rasio skala dimatikan (\texttt{<scale} atau \texttt{scale=false}), Anda perlu mengatur
+nilai \texttt{distance} dan \texttt{center} secara manual agar geometri grafik tidak terpotong.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("5*exp(-x^2-y^2)",r=2,<fscale,<scale,distance=13,height=50°, ...
+>center=[0,0,-2],frame=3):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-011.png}
+\begin{eulercomment}
+Proyeksi polar dapat diaktifkan dengan menambahkan parameter \texttt{>polar}. Fungsi matematika
+harus mendefinisikan \texttt{r} terhadap \texttt{x} dan sudut terhadap \texttt{y}. Pengubahan skala fungsi polar
+ditangani oleh \texttt{fscale}, sementara bidang horizontal disesuaikan dengan skala otomatis
+bawaan.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("1/(x^2+y^2+1)",r=5,>polar, ...
+>fscale=2,>hue,n=100,zoom=4,>contour,color=blue):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-012.png}
+\begin{eulerprompt}
+>function f(r) := exp(-r/2)*cos(r); ...
+>plot3d("f(x^2+y^2)",>polar,scale=[1,1,0.4],r=pi,frame=3,zoom=4):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-013.png}
+\begin{eulercomment}
+Parameter \texttt{rotate} memungkinkan pemutaran kurva 2D mengelilingi sumbu tertentu untuk
+membentuk permukaan 3D:
+\begin{itemize}
+    \item \texttt{rotate=1} (atau \texttt{rotate=true}): Memutar kurva mengelilingi sumbu-x.
+    \item \texttt{rotate=2}: Memutar kurva mengelilingi sumbu-z.
+\end{itemize}
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2+1",a=-1,b=1,rotate=true,grid=5):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-014.png}
+\begin{eulerprompt}
+>plot3d("x^2+1",a=-1,b=1,rotate=2,grid=5):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-015.png}
+\begin{eulerprompt}
+>plot3d("sqrt(25-x^2)",a=0,b=5,rotate=1):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-016.png}
+\begin{eulerprompt}
+>plot3d("x*sin(x)",a=0,b=6pi,rotate=2):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-017.png}
+\begin{eulercomment}
+Berikut adalah contoh menggabungkan tiga ekspresi matematika sekaligus dalam satu plot
+3D.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x","x^2+y^2","y",r=2,zoom=3.5,frame=3):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-018.png}
+
+\eulerheading{Plot Kontur}
+\begin{eulercomment}
+Standarnya, Euler menampilkan jaring (grid) persegi pada plot. Grid ini dapat dihilangkan
+untuk menonjolkan gradasi warna berdasarkan ketinggian (spectral hue). Euler juga
+mendukung efek pencahayaan (shading) untuk mempertegas bentuk permukaan serta pembuatan
+gambar anaglif tiga dimensi (merah/sian).
+\begin{itemize}
+    \item \texttt{>hue}: Mengaktifkan pewarnaan bayangan (shading) dan menyembunyikan garis jaring kawat.
+    \item \texttt{>contour}: Menampilkan garis kontur ketinggian pada permukaan grafik.
+    \item \texttt{level=...} (atau \texttt{levels}): Menentukan rentang atau nilai level untuk garis kontur.
+\end{itemize}
+
+Euler menggunakan pengaturan level otomatis (\texttt{level="auto"}) untuk
+mendistribusikan garis kontur secara proporsional.
+
+Nilai parameter dapat disesuaikan. Contoh berikut menggunakan grid 100x100, menyesuaikan
+skala sumbu, serta mengubah sudut pandang kamera.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("exp(-x^2-y^2)",r=2,n=100,level="thin", ...
+>>contour,>spectral,fscale=1,scale=1.1,angle=45°,height=20°):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-019.png}
+\begin{eulerprompt}
+>plot3d("exp(x*y)",angle=100°,>contour,color=green):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-020.png}
+\begin{eulercomment}
+Pengaturan awal memberikan warna abu-abu polos pada shading. Skema warna dapat diubah
+menggunakan palet bawaan:
+\begin{itemize}
+    \item \texttt{>spectral}: Menggunakan skema warna spektral standar.
+    \item \texttt{color=...}: Memilih warna kustom atau skema warna khusus.
+\end{itemize}
+
+Contoh berikut meningkatkan jumlah titik kalkulasi (\texttt{n=100}) agar garis kontur dirender
+lebih halus dan presisi.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2+y^2",>spectral,>contour,n=100):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-021.png}
+\begin{eulercomment}
+Rentang dan nilai garis kontur pada permukaan grafik dapat ditentukan secara eksplisit.
+Pada contoh berikut, tingkat kontur ditentukan dari -1 hingga 1 dengan interval 0.1.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2-y^2",0,5,0,5,level=-1:0.1:1,color=redgreen):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-022.png}
+\begin{eulercomment}
+Contoh berikut menampilkan pita kontur yang lebih tebal pada interval nilai [-0.1, 0] dan
+[0.9, 1]. Format nilai disajikan dalam matriks 2x2.
+
+Parameter \texttt{grid=10} digunakan untuk membagi area menjadi 10 interval jaring.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2+y^3",level=[-0.1,0.9;0,1], ...
+>>spectral,angle=30°,grid=10,contourcolor=gray):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-023.png}
+\begin{eulercomment}
+Contoh berikut memplot kurva tempat titik-titik yang memenuhi persamaan implisit:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y) = x^y-y^x = 0
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Plot ini ditampilkan khusus untuk level tunggal pada ketinggian zero set (\texttt{level=0}).
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^y-y^x",level=0,a=0,b=6,c=0,d=6,contourcolor=red,n=100):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-025.png}
+\begin{eulercomment}
+Proyeksi garis kontur juga dapat diproyeksikan ke alas bawah permukaan grafik menggunakan
+parameter \texttt{>cp}. Warna kontur proyeksi dan jaraknya dari plot dapat dikustomisasi.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2+y^4",>cp,cpcolor=green,cpdelta=0.2):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-026.png}
+\begin{eulercomment}
+Berikut adalah contoh berbagai gaya tampilan dan pewarnaan pada Euler. Bingkai objek
+dapat dimatikan dengan atribut \texttt{<frame}, disertai penyesuaian skema warna serta
+kepadatan jaring (grid).
+\end{eulercomment}
+\begin{eulerprompt}
+>figure(2,2); ...
+>expr="y^3-x^2"; ...
+>figure(1); ...
+>plot3d(expr,<frame,>cp,cpcolor=spectral); ...
+>figure(2); ...
+>plot3d(expr,<frame,>spectral,grid=10,cp=2); ...
+>figure(3); ...
+>plot3d(expr,<frame,>contour,color=gray,nc=5,cp=3,cpcolor=greenred); ...
+>figure(4); ...
+>plot3d(expr,<frame,>hue,grid=10,>transparent,>cp,cpcolor=gray); ...
+>figure(0):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-027.png}
+\begin{eulercomment}
+Skema warna spektral standar menggunakan indeks bernomor 1 hingga 9. Indeks ini dapat
+dipanggil menggunakan atribut \texttt{spectral=i} atau \texttt{color=value}. Pilihan warna bawaan meliputi:
+\begin{itemize}
+    \item \texttt{spectral}: Gradasi warna dari biru ke merah.
+    \item \texttt{white}: Warna dasar putih dengan shading.
+    \item Kombinasi dua warna: \texttt{yellowblue}, \texttt{purplegreen}, \texttt{blueyellow}, \texttt{greenred}, \texttt{greenpurple}, \texttt{redgreen}.
+\end{itemize}
+\end{eulercomment}
+\begin{eulerprompt}
+>figure(3,3); ...
+>for i=1:9; ...
+>figure(i); plot3d("x^2+y^2",spectral=i,>contour,>cp,<frame,zoom=4); ...
+>end; ...
+>figure(0):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-028.png}
+\begin{eulercomment}
+Arah sumber pencahayaan dapat diubah interaktif saat grafik ditampilkan dengan menekan
+tombol \texttt{'l'} dan menggunakan tombol panah. Posisi arah pencahayaan juga dapat
+ditentukan secara permanen melalui kode skrip:
+\begin{itemize}
+    \item \texttt{light}: Vektor arah pencahayaan virtual.
+    \item \texttt{amb}: Intensitas cahaya ambien (berkisar dari 0 hingga 1).
+\end{itemize}
+
+Modul perenderan internal Euler tidak menghitung proyeksi bayangan jatuh (shadows). Untuk
+merender bayangan objek yang fotorealistik, pengguna dapat memanfaatkan integrasi dengan
+Povray.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("-x^2-y^2", ...
+>hue=true,light=[0,1,1],amb=0,user=true, ...
+>title="Tekan 'l' dan tombol kursor (tekan return untuk keluar)"):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-029.png}
+\begin{eulercomment}
+Atribut \texttt{color} menetapkan warna tunggal pada permukaan grafik. Warna garis indikator level
+kontur juga dapat disesuaikan (\texttt{contourcolor}).
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("-x^2-y^2",color=rgb(0.2,0.2,0),hue=true,frame=false, ...
+>zoom=3,contourcolor=red,level=-2:0.1:1,dl=0.01):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-030.png}
+\begin{eulercomment}
+Menyetel \texttt{color=0} mengaktifkan efek warna pelangi (rainbow effect) pada shading permukaan
+grafik.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2/(x^2+y^2+1)",color=0,hue=true,grid=10):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-031.png}
+\begin{eulercomment}
+Permukaan poligon grafik dapat dibuat transparan agar struktur bagian dalam terlihat.
+Fitur ini diaktifkan dengan atribut \texttt{>transparent}.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2+y^2",>transparent,grid=10,wirecolor=red):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-032.png}
+
+\eulerheading{Plot Implisit}
+\begin{eulercomment}
+Euler mendukung perenderan permukaan dari persamaan fungsi implisit $f(x,y,z)=0$. Algoritma
+\texttt{plot3d} memotong bidang ruang untuk menampilkan permukaan zero set fungsi tersebut.
+Titik-titik penyelesaian dari persamaan:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y,z) = 0
+\]
+\end{eulerformula}
+\begin{eulercomment}
+diproyeksikan pada irisan bidang x-y, x-z, atau y-z:
+\begin{itemize}
+    \item \texttt{implicit=1}: Memotong irisan paralel bidang y-z.
+    \item \texttt{implicit=2}: Memotong irisan paralel bidang x-z.
+    \item \texttt{implicit=4}: Memotong irisan paralel bidang x-y.
+\end{itemize}
+
+Kombinasi nilai dapat digunakan untuk menampilkan beberapa irisan sekaligus. Contoh
+berikut memplot fungsi implisit:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+M = \{ (x,y,z) : x^2+y^3+zy=1 \}
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>plot3d("x^2+y^3+z*y-1",r=5,implicit=3):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-035.png}
+\begin{eulerprompt}
+>c=1; d=1;
+>plot3d("((x^2+y^2-c^2)^2+(z^2-1)^2)*((y^2+z^2-c^2)^2+(x^2-1)^2)*((z^2+x^2-c^2)^2+(y^2-1)^2)-d",r=2,<frame,>implicit,>user):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-036.png}
+\begin{eulerprompt}
+>plot3d("x^2+y^2+4*x*z+z^3",>implicit,r=2,zoom=2.5):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-037.png}
+
+\eulerheading{Memplot Data 3D}
+\begin{eulercomment}
+Selain persamaan fungsi, \texttt{plot3d} dapat menerima data numerik berupa tiga matriks koordinat
+(x,y,z) untuk menampilkan objek 3D parametrik, serupa dengan fungsi \texttt{plot2d}. Anda dapat
+memasukkan matriks x, y, dan z secara langsung, atau menggunakan fungsi parametrik
+$fx(t,s)$, $fy(t,s)$, dan $fz(t,s)$.
+\end{eulercomment}
+\begin{eulerformula}
+\[
+\gamma(t,s) = (x(t,s),y(t,s),z(t,s))
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Parameter $t$ dan $s$ dievaluasi dalam grid persegi untuk menghasilkan matriks koordinat x,
+y, dan z yang membentuk permukaan 3D.
+
+Penggunaan kalkulasi berarah matriks di Euler sangat direkomendasikan karena lebih
+efisien dalam memproses data koordinat.
+
+Contoh berikut memplot permukaan bola menggunakan parameter \texttt{t} (vektor baris) dan \texttt{s}
+(vektor kolom). Wilayah kutub juga dapat diwarnai khusus menggunakan parameter \texttt{level} dan
+\texttt{contourcolor}.
+\end{eulercomment}
+\begin{eulerprompt}
+>t=linspace(0,2pi,180); s=linspace(-pi/2,pi/2,90)'; ...
+>x=cos(s)*cos(t); y=cos(s)*sin(t); z=sin(s); ...
+>plot3d(x,y,z,>hue, ...
+>color=blue,<frame,grid=[10,20], ...
+>values=s,contourcolor=red,level=[90°-24°;90°-22°], ...
+>scale=1.4,height=50°):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-039.png}
+\begin{eulercomment}
+Contoh berikut menampilkan grafik fungsi parametrik $z = f(t,s)$:
+\end{eulercomment}
+\begin{eulerprompt}
+>t=-1:0.1:1; s=(-1:0.1:1)'; plot3d(t,s,t*s,grid=10):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-040.png}
+\begin{eulercomment}
+Permukaan juga dapat didefinisikan secara implisit sebagai fungsi $x$ terhadap $y$ dan $z$:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+x = y \, z
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>plot3d(t*s,t,s,angle=180°,grid=10):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-042.png}
+\begin{eulercomment}
+Berbagai bentuk permukaan dapat dibuat dengan mendefinisikan persamaan parametriknya
+secara tepat.
+
+Tampilan berikut menunjukkan bola terdistorsi dengan shading. Permukaan bola standar
+didefinisikan dengan persamaan:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+\gamma(t,s) = (\cos(t)\cos(s),\sin(t)\sin(s),\cos(s))
+\]
+\end{eulerformula}
+\begin{eulercomment}
+dengan rentang parameter:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+0 \le t \le 2\pi, \quad \frac{-\pi}{2} \le s \le \frac{\pi}{2}.
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Bentuk bola ini kemudian didistorsi menggunakan faktor pengali $d(t,s)$:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+d(t,s) = \frac{\cos(4t)+\cos(8s)}{4}.
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>t=linspace(0,2pi,320); s=linspace(-pi/2,pi/2,160)'; ...
+>d=1+0.2*(cos(4*t)+cos(8*s)); ...
+>plot3d(cos(t)*cos(s)*d,sin(t)*cos(s)*d,sin(s)*d,hue=1, ...
+>light=[1,0,1],frame=0,zoom=5):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-046.png}
+\begin{eulercomment}
+Euler juga dapat memplot kumpulan titik 3D (point cloud) dari tiga vektor data koordinat.
+
+Opsi gaya tampilan yang tersedia pada \texttt{plot2d} dapat digunakan pada \texttt{plot3d} dengan
+menambahkan parameter \texttt{points=true}.
+\end{eulercomment}
+\begin{eulerprompt}
+>n=500; ...
+>plot3d(normal(1,n),normal(1,n),normal(1,n),points=true,style="."):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-047.png}
+\begin{eulercomment}
+Kurva 3D dapat dibuat dari urutan titik koordinat dengan mengaktifkan parameter \texttt{>wire}.
+Data titik koordinat dihitung terlebih dahulu sebelum diplot.
+\end{eulercomment}
+\begin{eulerprompt}
+>t=linspace(0,8pi,500); ...
+>plot3d(sin(t),cos(t),t/10,>wire,zoom=3):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-048.png}
+\begin{eulerprompt}
+>t=linspace(0,4pi,1000); plot3d(cos(t),sin(t),t/2pi,>wire, ...
+>linewidth=3,wirecolor=blue):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-049.png}
+\begin{eulerprompt}
+>X=cumsum(normal(3,100)); ...
+>plot3d(X[1],X[2],X[3],>anaglyph,>wire):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-050.png}
+\begin{eulercomment}
+Euler dapat menampilkan grafik dalam mode anaglif 3D yang dapat dilihat menggunakan
+kacamata filter merah/sian.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2+y^3",>anaglyph,>contour,angle=30°):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-051.png}
+\begin{eulercomment}
+Perbedaan ketinggian permukaan grafik dapat ditonjolkan dengan pewarnaan spektral
+bergradasi.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2*y^3-y",>spectral,>contour,zoom=3.2):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-052.png}
+\begin{eulercomment}
+Permukaan terparameterisasi dirender dengan memasukkan matriks nilai koordinat x, y, dan
+z yang dihasilkan dari jaring nilai parameter.
+
+Contoh berikut memplot permukaan pita Mobius menggunakan parameter \texttt{u} dan \texttt{v}.
+\end{eulercomment}
+\begin{eulerprompt}
+>u=linspace(-1,1,10); v=linspace(0,2*pi,50)'; ...
+>X=(3+u*cos(v/2))*cos(v); Y=(3+u*cos(v/2))*sin(v); Z=u*sin(v/2); ...
+>plot3d(X,Y,Z,>anaglyph,<frame,>wire,scale=2.3):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-053.png}
+\begin{eulercomment}
+Efek kedalaman visual 3D pada grafik berikut akan terlihat optimal jika dilihat
+menggunakan kacamata anaglif merah/sian.
+\end{eulercomment}
+\begin{eulerprompt}
+>u:=linspace(-pi,pi,160); v:=linspace(-pi,pi,400)'; ...
+>x:=(4*(1+.25*sin(3*v))+cos(u))*cos(2*v); ...
+>y:=(4*(1+.25*sin(3*v))+cos(u))*sin(2*v); ...
+>z=sin(u)+2*cos(3*v); ...
+>plot3d(x,y,z,frame=0,scale=1.5,hue=1,light=[1,0,-1],zoom=2.8,>anaglyph):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-054.png}
+
+\eulerheading{Plot Statistik}
+\begin{eulercomment}
+Diagram batang 3D (bar plot) dapat dibuat menggunakan \texttt{plot3d} dengan memasukkan data
+matriks:
+\begin{itemize}
+    \item \texttt{x}: Vektor baris bernilai $n+1$ sebagai batas sel sumbu-x.
+    \item \texttt{y}: Vektor kolom bernilai $n+1$ sebagai batas sel sumbu-y.
+    \item \texttt{z}: Matriks ukuran $n \times n$ yang berisi nilai tinggi batang.
+\end{itemize}
+
+Ukuran matriks \texttt{z} dapat lebih besar dari batas \texttt{x} dan \texttt{y}, tetapi hanya bagian $n \times n$ yang akan
+diplot.
+
+Pada contoh berikut, nilai \texttt{x} dan \texttt{y} disesuaikan terlebih dahulu agar posisi batang berada
+tepat di tengah koordinat yang sesuai.
+\end{eulercomment}
+\begin{eulerprompt}
+>x=-1:0.1:1; y=x'; z=x^2+y^2; ...
+>xa=(x|1.1)-0.05; ya=(y_1.1)-0.05; ...
+>plot3d(xa,ya,z,bar=true):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-055.png}
+\begin{eulercomment}
+Permukaan grafik dapat dipisahkan menjadi beberapa segmen menggunakan parameter
+\texttt{disconnect}.
+\end{eulercomment}
+\begin{eulerprompt}
+>x=-1:0.1:1; y=x'; z=x+y; d=zeros(size(x)); ...
+>plot3d(x,y,z,disconnect=2:2:20):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-056.png}
+\begin{eulercomment}
+Saat memplot matriks data \texttt{M} dari berkas, skala nilai sumbu-z akan dinormalisasi ke
+interval $[-1,1]$. Pengaturan skala otomatis pada sumbu-z ini dapat diaktifkan dengan
+menambahkan parameter \texttt{>zscale}, atau disesuaikan dengan skala kustom (\texttt{scale}).
+\end{eulercomment}
+\begin{eulerprompt}
+>i=1:20; j=i'; ...
+>plot3d(i*j^2+100*normal(20,20),>zscale,scale=[1,1,1.5],angle=-40°,zoom=1.8):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-057.png}
+\begin{eulerprompt}
+>Z=intrandom(5,100,6); v=zeros(5,6); ...
+>loop 1 to 5; v[#]=getmultiplicities(1:6,Z[#]); end; ...
+>columnsplot3d(v',scols=1:5,ccols=[1:5]):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-058.png}
+
+\eulerheading{Permukaan Benda Putar}
+\begin{eulerprompt}
+>plot2d("(x^2+y^2-1)^3-x^2*y^3",r=1.3, ...
+>style="#",color=red,<outline, ...
+>level=[-2;0],n=100):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-059.png}
+\begin{eulerprompt}
+>ekspresi &= (x^2+y^2-1)^3-x^2*y^3; $ekspresi
+\end{eulerprompt}
+\begin{eulerformula}
+\[
+\left(y^2+x^2-1\right)^3-x^2\,y^3
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Kurva bentuk hati (heart curve) dapat diputar mengelilingi sumbu-y untuk membentuk benda
+putar 3D. Persamaan kurvanya adalah:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y)=(x^2+y^2-1)^3-x^2.y^3.
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Untuk memperoleh bentuk parametriknya, dilakukan substitusi koordinat polar:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+x=r.cos(a),\quad y=r.sin(a).
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>function fr(r,a) &= ekspresi with [x=r*cos(a),y=r*sin(a)] | trigreduce; $fr(r,a)
+\end{eulerprompt}
+\begin{eulerformula}
+\[
+\left(r^2-1\right)^3+\frac{\left(\sin \left(5\,a\right)-\sin \left(  3\,a\right)-2\,\sin a\right)\,r^5}{16}
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Nilai jari-jari $r$ dicari menggunakan fungsi \texttt{bisect} berdasarkan sudut $a$. Hasil kurva 3D
+parametrik kemudian dipromosikan dan diplot sebagai permukaan benda putar.
+\end{eulercomment}
+\begin{eulerprompt}
+>function map f(a) := bisect("fr",0,2;a); ...
+>t=linspace(-pi/2,pi/2,100); r=f(t); ...
+>s=linspace(pi,2pi,100)'; ...
+>plot3d(r*cos(t)*sin(s),r*cos(t)*cos(s),r*sin(t), ...
+>>hue,<frame,color=red,zoom=4,amb=0,max=0.7,grid=12,height=50°):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-064.png}
+\begin{eulercomment}
+Benda putar juga dapat dibuat dengan memutar grafik implisit mengelilingi sumbu-z.
+Persamaan fungsi didefinisikan sebagai berikut:
+\end{eulercomment}
+\begin{eulerprompt}
+>function f(x,y,z) ...
+\end{eulerprompt}
+\begin{eulerudf}
+r=x^2+y^2;
+return (r+z^2-1)^3-r*z^3;
+endfunction
+\end{eulerudf}
+\begin{eulerprompt}
+>plot3d("f(x,y,z)", ...
+>xmin=0,xmax=1.2,ymin=-1.2,ymax=1.2,zmin=-1.2,zmax=1.4, ...
+>implicit=1,angle=-30°,zoom=2.5,n=[10,100,60],>anaglyph):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-065.png}
+
+\eulerheading{Plot 3D Khusus}
+\begin{eulercomment}
+Fungsi \texttt{plot3d} memudahkan pembuatan grafik 3D secara cepat, tetapi tidak semua kebutuhan
+khusus dapat dipenuhi. Pengguna dapat membuat prosedur kustom untuk memplot objek khusus
+sesuai kebutuhan.
+
+EMT bukan merupakan program ray tracer 3D khusus, tetapi dapat menggabungkan beberapa
+objek plot 3D sekaligus. Contoh berikut memvisualisasikan permukaan paraboloida beserta
+bidang singgungnya (tangent plane).
+\end{eulercomment}
+\begin{eulerprompt}
+>function myplot ...
+\end{eulerprompt}
+\begin{eulerudf}
+y=-1:0.01:1; x=(-1:0.01:1)';
+plot3d(x,y,0.2*(x-0.1)/2,<scale,<frame,>hue, ..
+hues=0.5,>contour,color=orange);
+h=holding(1);
+plot3d(x,y,(x^2+y^2)/2,<scale,<frame,>contour,>hue);
+holding(h);
+endfunction
+\end{eulerudf}
+\begin{eulercomment}
+Prosedur \texttt{framedplot()} digunakan untuk mengatur bingkai kanvas serta menentukan batas
+koordinat dan sudut pandang kamera.
+\end{eulercomment}
+\begin{eulerprompt}
+>framedplot("myplot",[-1,1,-1,1,0,1],height=0,angle=-30°, ...
+>center=[0,0,-0.7],zoom=3):
+\end{eulerprompt}
+\eulerimg{30}{images/Tugas 4-066.png}
+\begin{eulercomment}
+Proyeksi garis kontur pada alas bidang (contour plane) dihitung terpisah. Fungsi \texttt{plot3d()}
+bekerja pada tampilan jendela penuh (\texttt{fullwindow()}), sedangkan \texttt{plotcontourplane()}
+menggambar garis kontur sesuai batas bingkai yang ditentukan.
+\end{eulercomment}
+\begin{eulerprompt}
+>x=-1:0.02:1.1; y=x'; z=x^2-y^4;
+>function myplot (x,y,z) ...
+\end{eulerprompt}
+\begin{eulerudf}
+zoom(2);
+wi=fullwindow();
+plotcontourplane(x,y,z,level="auto",<scale);
+plot3d(x,y,z,>hue,<scale,>add,color=white,level="thin");
+window(wi);
+reset();
+endfunction
+\end{eulerudf}
+\begin{eulerprompt}
+>myplot(x,y,z):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-067.png}
+
+\eulerheading{Animasi}
+\begin{eulercomment}
+EMT dapat menghasilkan animasi 3D dengan merekam urutan gambar (frame) dari perubahan
+parameter grafik secara berkala.
+
+Fungsi \texttt{rotate()} digunakan untuk memutar sudut pandang grafik, meredraw tampilan, dan
+menyimpan setiap bingkai menggunakan \texttt{addpage()} hingga menghasilkan animasi pemutaran
+objek.
+
+Pelajari kode sumber fungsi \texttt{rotate()} untuk memahami alur pembuatan animasi secara rinci.
+\end{eulercomment}
+\begin{eulerprompt}
+>function testplot () := plot3d("x^2+y^3"); ...
+>rotate("testplot"); testplot():
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-068.png}
+
+\eulerheading{Menggambar dengan Povray}
+\begin{eulercomment}
+Pustaka \texttt{povray.e} memungkinkan pengguna mengekspor data EMT ke format berkas Povray. Hasil
+pencitraan ray tracing dari Povray jauh lebih halus dan fotorealistik dibandingkan
+tampilan grafik standar EMT.
+
+Pastikan program Povray sudah terpasang di sistem komputer Anda (\url{http://www.povray.org/})
+dan jalurnya terdaftar dalam environment path. Tentukan lokasi berkas eksekusi
+\texttt{pvengine.exe} pada variabel \texttt{defaultpovray}.
+
+EMT akan menyimpan deskripsi objek ke berkas \texttt{current.pov} di direktori \texttt{eulerhome()}.
+Selanjutnya, EMT memanggil Povray untuk merender berkas tersebut menjadi berkas gambar
+PNG yang akan ditampilkan di dokumen. Berkas sementara POV dapat dibersihkan menggunakan
+perintah \texttt{povclear()}.
+
+Fungsi \texttt{pov3d} memiliki sintaks yang serupa dengan \texttt{plot3d}. Fungsi ini dapat memplot grafik
+fungsi, matriks permukaan, maupun garis kontur opsional, lalu merender hasilnya secara
+otomatis melalui Povray.
+
+Selain menggunakan \texttt{pov3d()}, objek Povray kustom dapat dibuat secara eksplisit. Sesi
+dimulai dengan perintah \texttt{povstart()}, diikuti penulisan kode Povray dengan \texttt{writeln()}, dan
+diakhiri dengan \texttt{povend()} untuk memulai proses rendering.
+
+Tekstur dan material objek dapat diatur menggunakan fungsi \texttt{povlook()}. Fungsi ini
+mendukung pengaturan warna RGB, tingkat transparansi, pencahayaan ambien, serta efek
+kilau permukaan (Phong shading).
+
+Povray menggunakan sistem koordinat kidal (left-handed), sedangkan Euler menggunakan
+sistem koordinat kanan (right-handed). EMT secara otomatis mengonversi koordinat sehingga
+sumbu-z tetap mengarah ke atas secara vertikal.
+Muat utilitas fungsional khusus pustaka Povray sebelum beroperasi.
+\end{eulercomment}
+\begin{eulerprompt}
+>load povray;
+\end{eulerprompt}
+\begin{eulercomment}
+Tentukan lokasi direktori instalasi Povray secara tepat. Sesuaikan jalur direktori berkas \texttt{pvengine.exe}
+pada variabel \texttt{defaultpovray} jika diperlukan.
+\end{eulercomment}
+\begin{eulerprompt}
+>defaultpovray="C:\Program Files\POV-Ray\v3.7\bin\pvengine.exe"
+\end{eulerprompt}
+\begin{euleroutput}
+C:\Program Files\POV-Ray\v3.7\bin\pvengine.exe
+\end{euleroutput}
+\begin{eulercomment}
+Contoh dasar perenderan kurva 3D dengan Povray. Proses ray tracing dijalankan di latar belakang.
+
+Povray akan membuka jendela proses saat merender. Berikan izin akses jika dialog keamanan Windows
+(UAC) muncul saat aplikasi dijalankan pertama kali.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("x^2+y^2",zoom=2):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-069.png}
+\begin{eulerprompt}
+>pov3d("x^2+y^2",zoom=3);
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-070.png}
+\begin{eulercomment}
+Properti tekstur, transparansi, serta garis tingkat kontur pada objek Povray dapat disesuaikan
+menggunakan atribut pendukung.
+\end{eulercomment}
+\begin{eulerprompt}
+>pov3d("x^2+y^3",axiscolor=red,angle=-45°,>anaglyph, ...
+>look=povlook(cyan,0.2),level=-1:0.5:1,zoom=3.8);
+\end{eulerprompt}
+\eulerimg{37}{images/Tugas 4-071.png}
+\begin{eulercomment}
+Skala fungsi dapat disesuaikan secara manual agar bentuk plot sesuai dengan dimensi kubus
+pembatas ketika fitur skala otomatis dimatikan (\texttt{<fscale}).
+
+Contoh berikut memplot fungsi bidang kompleks dalam rentang koordinat \texttt{r=2}.
+\end{eulercomment}
+\begin{eulerprompt}
+>pov3d("((x-1)^2+y^2)*((x+1)^2+y^2)/40",r=2, ...
+>angle=-120°,level=1/40,dlevel=0.005,light=[-1,1,1],height=10°,n=50, ...
+><fscale,zoom=3.8);
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-072.png}
+
+\eulerheading{Memplot dengan Koordinat}
+\begin{eulercomment}
+Selain menggunakan ekspresi fungsi, objek Povray dapat dibentuk dari tiga matriks data
+koordinat (x, y, z).
+
+Contoh berikut menampilkan permukaan benda putar yang diputar mengelilingi sumbu-z:
+\end{eulercomment}
+\begin{eulerprompt}
+>function f(x) := x^3-x+1; ...
+>x=-1:0.01:1; t=linspace(0,2pi,50)'; ...
+>Z=x; X=cos(t)*f(x); Y=sin(t)*f(x); ...
+>pov3d(X,Y,Z,angle=40°,look=povlook(red,0.1),height=50°,axis=0,zoom=4,light=[10,5,15]);
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-073.png}
+\begin{eulercomment}
+Contoh berikut memperlihatkan gelombang terredam (damped wave) dalam koordinat polar.
+
+Elemen tambahan dapat disisipkan ke dalam adegan Povray menggunakan parameter \texttt{add=}. Objek
+tambahan tersebut secara otomatis disesuaikan ukurannya ke dalam skala kubus satuan.
+\end{eulercomment}
+\begin{eulerprompt}
+>r=linspace(0,1,80); phi=linspace(0,2pi,80)'; ...
+>x=r*cos(phi); y=r*sin(phi); z=exp(-5*r)*cos(8*pi*r)/3; ...
+>pov3d(x,y,z,zoom=6,axis=0,height=30°,add=povsphere([0.5,0,0.25],0.15,povlook(red)), ...
+>w=500,h=300);
+\end{eulerprompt}
+\eulerimg{24}{images/Tugas 4-074.png}
+\begin{eulercomment}
+Povray dapat menghasilkan permukaan yang sangat halus meskipun jumlah titik data grid
+terbatas. Untuk mengoptimalkan tampilan shading dan bayangan, vektor normal permukaan
+dapat disertakan dalam perhitungan.
+
+Vektor normal dihitung dari turunan parsial permukaan fungsi:
+\end{eulercomment}
+\begin{eulerprompt}
+>Z &= x^2*y^3
+\end{eulerprompt}
+\begin{euleroutput}
+ 2  3
+x  y
+\end{euleroutput}
+\begin{eulercomment}
+Perkalian silang (cross product) dari turunan terhadap x dan y memberikan vektor normal
+tegak lurus permukaan.
+\end{eulercomment}
+\begin{eulerprompt}
+>dx &= diff([x,y,Z],x); dy &= diff([x,y,Z],y);
+\end{eulerprompt}
+\begin{eulercomment}
+Komponen vektor normal (NX, NY, NZ) dihitung secara simbolik:
+\end{eulercomment}
+\begin{eulerprompt}
+>N &= crossproduct(dx,dy); NX &= N[1]; NY &= N[2]; NZ &= N[3]; N,
+\end{eulerprompt}
+\begin{euleroutput}
+      3       2  2
+[- 2 x y , - 3 x  y , 1]
+\end{euleroutput}
+\begin{eulercomment}
+Meskipun hanya menggunakan grid 25x25 titik, permukaan terlihat halus karena
+diterapkannya vektor normal (\texttt{xv}, \texttt{yv}, \texttt{zv}).
+\end{eulercomment}
+\begin{eulerprompt}
+>x=-1:0.5:1; y=x';
+>pov3d(x,y,Z(x,y),angle=10°, ...
+>xv=NX(x,y),yv=NY(x,y),zv=NZ(x,y),<shadow);
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-075.png}
+\begin{eulercomment}
+Contoh simpul Trefoil (Trefoil Knot) berikut dirancang oleh A. Busser untuk EMT. Berkas
+contoh ini dapat ditemukan di folder pustaka EMT.
+
+Lokasi berkas: \texttt{Examples\textbackslash Trefoil Knot}.
+
+Penggunaan vektor normal membuat permukaan kurva terlihat mulus tanpa memerlukan grid
+yang terlalu padat. Pustaka Maxima digunakan untuk menghitung turunan parsial dan vektor
+normal secara simbolik.
+\end{eulercomment}
+\begin{eulerprompt}
+>X &= ((4+sin(3*y))+cos(x))*cos(2*y); ...
+>Y &= ((4+sin(3*y))+cos(x))*sin(2*y); ...
+>Z &= sin(x)+2*cos(3*y);
+\end{eulerprompt}
+\begin{eulercomment}
+Turunan parsial terhadap x dan y dihitung secara simbolik:
+\end{eulercomment}
+\begin{eulerprompt}
+>dx &= diff([X,Y,Z],x); dy &= diff([X,Y,Z],y);
+\end{eulerprompt}
+\begin{eulercomment}
+Vektor normal hasil perkalian silang:
+\end{eulercomment}
+\begin{eulerprompt}
+>dn &= crossproduct(dx,dy);
+\end{eulerprompt}
+\begin{eulercomment}
+Evaluasi numerik dilakukan pada grid koordinat di EMT:
+\end{eulercomment}
+\begin{eulerprompt}
+>x:=linspace(-%pi,%pi,40); y:=linspace(-%pi,%pi,100)';
+\end{eulerprompt}
+\begin{eulercomment}
+Komponen vektor \texttt{dn} dievaluasi menggunakan sintaks \texttt{\&"expression"(parameters)}
+untuk melewatkan ekspresi simbolik Maxima secara langsung ke \texttt{pov3d}.
+\end{eulercomment}
+\begin{eulerprompt}
+>pov3d(X(x,y),Y(x,y),Z(x,y),>anaglyph,axis=0,zoom=5,w=450,h=350, ...
+><shadow,look=povlook(blue), ...
+>xv=&"dn[1]"(x,y), yv=&"dn[2]"(x,y), zv=&"dn[3]"(x,y));
+\end{eulerprompt}
+\eulerimg{28}{images/Tugas 4-076.png}
+\begin{eulercomment}
+Kerangka jaring (grid 3D) dapat dibuat dan di-render di Povray menggunakan perintah \texttt{povgrid()}.
+\end{eulercomment}
+\begin{eulerprompt}
+>povstart(zoom=4); ...
+>x=-1:0.5:1; r=1-(x+1)^2/6; ...
+>t=(0°:30°:360°)'; y=r*cos(t); z=r*sin(t); ...
+>writeln(povgrid(x,y,z,d=0.02,dballs=0.05)); ...
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-077.png}
+\begin{eulercomment}
+Perintah \texttt{povgrid()} juga dapat digunakan untuk memplot kurva ruang 3D dalam bentuk tabung/kawat.
+\end{eulercomment}
+\begin{eulerprompt}
+>povstart(center=[0,0,1],zoom=3.6); ...
+>t=linspace(0,2,1000); r=exp(-t); ...
+>x=cos(2*pi*10*t)*r; y=sin(2*pi*10*t)*r; z=t; ...
+>writeln(povgrid(x,y,z,povlook(red))); ...
+>writeAxis(0,2,axis=3); ...
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-078.png}
+
+\eulerheading{Objek Povray}
+\begin{eulercomment}
+Selain membuat grafik fungsi, Povray dapat membuat berbagai bentuk geometri murni dasar.
+EMT menggenerasikan deskripsi teks objek tersebut ke berkas Povray.
+
+Pembuatan adegan diawali dengan \texttt{povstart()}.
+\end{eulercomment}
+\begin{eulerprompt}
+>povstart(zoom=4);
+\end{eulerprompt}
+\begin{eulercomment}
+Contoh berikut mendefinisikan tiga silinder yang saling berpotongan tegak lurus.
+
+Konstanta \texttt{povx}, \texttt{povy}, dan \texttt{povz} mewakili vektor satuan sumbu koordinat $[1,0,0]$, $[0,1,0]$,
+dan $[0,0,1]$.
+\end{eulercomment}
+\begin{eulerprompt}
+>c1=povcylinder(-povx,povx,1,povlook(red)); ...
+>c2=povcylinder(-povy,povy,1,povlook(yellow)); ...
+>c3=povcylinder(-povz,povz,1,povlook(blue)); ...
+\end{eulerprompt}
+\begin{eulercomment}
+Kode Povray yang dihasilkan berupa teks berikut:
+\end{eulercomment}
+\begin{eulerprompt}
+>c2
+\end{eulerprompt}
+\begin{euleroutput}
+cylinder { <0,0,-1>, <0,0,1>, 1
+    texture { pigment { color rgb <0.941176,0.941176,0.392157> }  } 
+    finish { ambient 0.2 } 
+}
+\end{euleroutput}
+\begin{eulercomment}
+Tampilan tekstur dan warna tiap silinder diatur dengan fungsi \texttt{povlook()}.
+
+Fungsi \texttt{povlook()} menghasilkan string kode tekstur Povray. Fungsi ini menerima masukan
+warna RGB, transparansi, intensitas ambien, serta efek kilau permukaan.
+\end{eulercomment}
+\begin{eulerprompt}
+>povlook(rgb(0.1,0.2,0.3),0.1,0.5)
+\end{eulerprompt}
+\begin{euleroutput}
+texture { pigment { color rgbf <0.101961,0.2,0.301961,0.1> }  } 
+finish { ambient 0.5 } 
+\end{euleroutput}
+\begin{eulercomment}
+Operasi irisan (intersection) ketiga silinder digabungkan dengan perintah
+\texttt{povintersection()}.
+\end{eulercomment}
+\begin{eulerprompt}
+>writeln(povintersection([c1,c2,c3]));
+\end{eulerprompt}
+\begin{eulercomment}
+Perpotongan ini menghasilkan bentuk geometri kompleks yang menarik.
+\end{eulercomment}
+\begin{eulerprompt}
+>povend;
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-079.png}
+\begin{eulercomment}
+Objek fraktal 3D dapat dikonstruksi secara rekursif menggunakan fungsi bawaan.
+
+Fungsi \texttt{povbox()} mengembalikan string definisi kubus Povray dengan koordinat dan tekstur
+yang ditentukan.
+\end{eulercomment}
+\begin{eulerprompt}
+>function onebox(x,y,z,d) := povbox([x,y,z],[x+d,y+d,z+d],povlook());
+>function fractal (x,y,z,h,n) ...
+\end{eulerprompt}
+\begin{eulerudf}
+if n==1 then writeln(onebox(x,y,z,h));
+else
+h=h/3;
+fractal(x,y,z,h,n-1);
+fractal(x+2*h,y,z,h,n-1);
+fractal(x,y+2*h,z,h,n-1);
+fractal(x,y,z+2*h,h,n-1);
+fractal(x+2*h,y+2*h,z,h,n-1);
+fractal(x+2*h,y,z+2*h,h,n-1);
+fractal(x,y+2*h,z+2*h,h,n-1);
+fractal(x+2*h,y+2*h,z+2*h,h,n-1);
+fractal(x+h,y+h,z+h,h,n-1);
+endif;
+endfunction
+\end{eulerudf}
+\begin{eulerprompt}
+>povstart(fade=10,<shadow);
+>fractal(-1,-1,-1,2,4);
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-080.png}
+\begin{eulercomment}
+Povray mendukung operasi geometri Boolean (Constructive Solid Geometry / CSG) seperti
+penggabungan (union), irisan (intersection), dan pengurangan (difference) untuk memotong
+atau menggabungkan objek geometri.
+\end{eulercomment}
+\begin{eulerprompt}
+>povstart(light=[5,-5,5],fade=10);
+\end{eulerprompt}
+\begin{eulercomment}
+Objek dapat didefinisikan sebagai variabel di Povray menggunakan perintah \texttt{povdefine()}.
+Variabel ini ditulis langsung ke berkas Povray saat dipanggil.
+
+Contoh berikut mendefinisikan kubus simetris bernilai -1 hingga 1:
+\end{eulercomment}
+\begin{eulerprompt}
+>povdefine("mycube",povbox(-1,1));
+\end{eulerprompt}
+\begin{eulercomment}
+Objek yang sudah didefinisikan dapat dipanggil kembali menggunakan \texttt{povobject()}.
+\end{eulercomment}
+\begin{eulerprompt}
+>c1=povobject("mycube",povlook(red));
+\end{eulerprompt}
+\begin{eulercomment}
+Kubus kedua diputar, digeser, dan diperbesar ukurannya:
+\end{eulercomment}
+\begin{eulerprompt}
+>c2=povobject("mycube",povlook(yellow),translate=[1,1,1], ...
+>rotate=xrotate(10°)+yrotate(10°), scale=1.2);
+\end{eulerprompt}
+\begin{eulercomment}
+Fungsi \texttt{povdifference()} memotong kubus pertama dengan kubus kedua:
+\end{eulercomment}
+\begin{eulerprompt}
+>writeln(povdifference(c1,c2));
+\end{eulerprompt}
+\begin{eulercomment}
+Sumbu koordinat ditambahkan ke dalam adegan:
+\end{eulercomment}
+\begin{eulerprompt}
+>writeAxis(-1.2,1.2,axis=1); ...
+>writeAxis(-1.2,1.2,axis=2); ...
+>writeAxis(-1.2,1.2,axis=4); ...
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-081.png}
+
+\eulerheading{Fungsi Implisit}
+\begin{eulercomment}
+Povray dapat merender permukaan fungsi implisit $f(x,y,z)=0$ secara langsung dengan
+pencahayaan dan bayangan yang halus.
+
+Penulisan fungsi implisit untuk Povray menggunakan sintaks bahasa C (misalnya \texttt{pow(x,2)}
+untuk \texttt{x\textasciicircum 2}), bukan sintaks Euler atau Maxima.
+\end{eulercomment}
+\begin{eulerformula}
+\[
+((x^2+y^2-c^2)^2+(z^2-1)^2)*((y^2+z^2-c^2)^2+(x^2-1)^2)*((z^2+x^2-c^2)^2+(y^2-1)^2)=d
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>povstart(angle=70°,height=50°,zoom=4);
+>writeln(povsurface("(pow(pow(x,2)+pow(y,2)-pow(0.1,2),2)+pow(pow(z,2)-1,2))*(pow(pow(y,2)+pow(z,2)-pow(0.1,2),2)+pow(pow(x,2)-1,2))*(pow(pow(z,2)+pow(x,2)-pow(0.1,2),2)+pow(pow(y,2)-1,2))-0.1",povlook(red)));
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-083.png}
+\begin{eulerprompt}
+>povstart(angle=25°,height=10°);
+>writeln(povsurface("pow(x,2)+pow(y,2)*pow(z,2)-1",povlook(blue),povbox(-2,2,"")));
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-084.png}
+\begin{eulerprompt}
+>povstart(angle=70°,height=50°,zoom=4);
+\end{eulerprompt}
+\begin{eulercomment}
+Fungsi \texttt{povsurface()} merender permukaan implisit menggunakan ekspresi bertipe C-style.
+\end{eulercomment}
+\begin{eulerprompt}
+>writeln(povsurface("pow(x,2)*y-pow(y,3)-pow(z,2)",povlook(green))); ...
+>writeAxes(); ...
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-085.png}
+
+\eulerheading{Objek Jaring (Mesh)}
+\begin{eulercomment}
+Objek jaring segi tiga (mesh object) dapat dibuat untuk menampilkan permukaan kompleks
+beserta elemen dekoratif tambahan.
+
+Contoh berikut memvisualisasikan maksimum fungsi $z = x \cdot y$ dengan batasan kondisi $x + y = 1$.
+\end{eulercomment}
+\begin{eulerprompt}
+>povstart(angle=-10°,center=[0.5,0.5,0.5],zoom=7);
+\end{eulerprompt}
+\begin{eulercomment}
+Data jaring yang besar disimpan ke berkas menggunakan perintah \texttt{\#declare}. Fungsi
+\texttt{povtriangles()} menggenerasikan kode jaring segi tiga beserta vektor normalnya secara
+otomatis.
+\end{eulercomment}
+\begin{eulerprompt}
+>x=0:0.02:1; y=x'; z=x*y; vx=-y; vy=-x; vz=1;
+>mesh=povtriangles(x,y,z,"",vx,vy,vz);
+\end{eulerprompt}
+\begin{eulercomment}
+Dua objek cakram (disc) dibuat untuk memotong permukaan jaring menggunakan operasi CSG.
+\end{eulercomment}
+\begin{eulerprompt}
+>cl=povdisc([0.5,0.5,0],[1,1,0],2); ...
+>ll=povdisc([0,0,1/4],[0,0,1],2);
+\end{eulerprompt}
+\begin{eulercomment}
+Bagian jaring di luar cakram dipotong menggunakan \texttt{povdifference()}.
+\end{eulercomment}
+\begin{eulerprompt}
+>writeln(povdifference(mesh,povunion([cl,ll]),povlook(green)));
+\end{eulerprompt}
+\begin{eulercomment}
+Irisan antara jaring dan cakram digambar dengan warna berbeda menggunakan
+\texttt{povintersection()}.
+\end{eulercomment}
+\begin{eulerprompt}
+>writeln(povintersection([mesh,cl],povlook(red))); ...
+>writeln(povintersection([mesh,ll],povlook(gray)));
+\end{eulerprompt}
+\begin{eulercomment}
+Titik maksimum fungsi ditandai dengan bola kecil menggunakan \texttt{povpoint()}.
+\end{eulercomment}
+\begin{eulerprompt}
+>writeln(povpoint([1/2,1/2,1/4],povlook(gray),size=2*defaultpointsize));
+\end{eulerprompt}
+\begin{eulercomment}
+Sumbu koordinat ditambahkan dengan \texttt{writeAxes()}, dan adegan diakhiri dengan \texttt{povend()}.
+\end{eulercomment}
+\begin{eulerprompt}
+>writeAxes(0,1,0,1,0,1,d=0.015); ...
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-086.png}
+
+\eulerheading{Anaglyph dalam Povray}
+\begin{eulercomment}
+Efek anaglif 3D pada Povray dibuat dengan merender adegan dari dua posisi kamera yang
+berbeda, lalu menggabungkan kedua gambar PNG menggunakan \texttt{loadanaglyph()}.
+
+Gunakan kacamata filter merah/sian untuk melihat efek kedalaman 3D.
+
+Mode anaglif pada \texttt{pov3d} dapat diaktifkan cukup dengan menambahkan sakelar \texttt{>anaglyph}.
+\end{eulercomment}
+\begin{eulerprompt}
+>pov3d("-exp(-x^2-y^2)/2",r=2,height=45°,>anaglyph, ...
+>center=[0,0,0.5],zoom=3.5);
+\end{eulerprompt}
+\eulerimg{37}{images/Tugas 4-087.png}
+\begin{eulercomment}
+Untuk adegan kustom, buat fungsi tersendiri yang mendefinisikan adegan. Fungsi tersebut
+kemudian dipanggil oleh \texttt{povanaglyph()}.
+\end{eulercomment}
+\begin{eulerprompt}
+>function myscene ...
+\end{eulerprompt}
+\begin{eulerudf}
+s=povsphere(povc,1);
+cl=povcylinder(-povz,povz,0.5);
+clx=povobject(cl,rotate=xrotate(90°));
+cly=povobject(cl,rotate=yrotate(90°));
+c=povbox([-1,-1,0],1);
+un=povunion([cl,clx,cly,c]);
+obj=povdifference(s,un,povlook(red));
+writeln(obj);
+writeAxes();
+endfunction
+\end{eulerudf}
+\begin{eulercomment}
+Perintah \texttt{povanaglyph()} menjalankan pembuatan adegan sebanyak dua kali dari dua sudut
+kamera berbeda untuk menghasilkan gambar anaglif.
+\end{eulercomment}
+\begin{eulerprompt}
+>povanaglyph("myscene",zoom=4.5);
+\end{eulerprompt}
+\eulerimg{37}{images/Tugas 4-088.png}
+
+\eulerheading{Mendefinisikan Objek Sendiri}
+\begin{eulercomment}
+Program Povray memiliki kemampuan untuk mencetak berbagai elemen spasial yang membentuk
+geometri dasar. Modifikasi konstruksi objek juga dapat dilakukan tanpa batas.
+
+Contoh berikut mendefinisikan bentuk torus (donat) di titik asal (0,0,0) menggunakan
+fungsi kustom:
+\end{eulercomment}
+\begin{eulerprompt}
+>function povdonat (r1,r2,look="") ...
+\end{eulerprompt}
+\begin{eulerudf}
+return "torus {"+r1+","+r2+look+"}";
+endfunction
+\end{eulerudf}
+\begin{eulercomment}
+Torus pertama didefinisikan dengan jari-jari \texttt{r1=0.8} dan \texttt{r2=0.2}:
+\end{eulercomment}
+\begin{eulerprompt}
+>t1=povdonat(0.8,0.2)
+\end{eulerprompt}
+\begin{euleroutput}
+torus {0.8,0.2}
+\end{euleroutput}
+\begin{eulercomment}
+Torus kedua diputar 90 derajat terhadap sumbu-x dan digeser ke sumbu-x sejauh 0.8:
+\end{eulercomment}
+\begin{eulerprompt}
+>t2=povobject(t1,rotate=xrotate(90°),translate=[0.8,0,0])
+\end{eulerprompt}
+\begin{euleroutput}
+object { torus {0.8,0.2}
+    rotate 90 *x 
+    translate <0.8,0,0>
+}
+\end{euleroutput}
+\begin{eulercomment}
+Kedua torus dimasukkan ke dalam adegan Povray dengan efek kilau \texttt{phong=1}:
+\end{eulercomment}
+\begin{eulerprompt}
+>povstart(center=[0.4,0,0],angle=0°,zoom=3.8,aspect=1.5); ...
+>writeln(povobject(t1,povlook(green,phong=1))); ...
+>writeln(povobject(t2,povlook(green,phong=1))); ...
+\end{eulerprompt}
+\begin{eulerttcomment}
+>povend();
+\end{eulerttcomment}
+\begin{eulercomment}
+Jika terjadi kesalahan sintaks saat \texttt{povend()} mengeksekusi Povray, gunakan opsi \texttt{<exit}
+agar jendela Povray tetap terbuka untuk memeriksa pesan kesalahan:
+\end{eulercomment}
+\begin{eulerttcomment}
+>povend(<exit);
+\end{eulerttcomment}
+\begin{eulercomment}
+Opsi ini mempertahankan jendela Povray terbuka jika terjadi galat.
+\end{eulercomment}
+\begin{eulerprompt}
+>povend(h=320,w=480);
+\end{eulerprompt}
+\eulerimg{26}{images/Tugas 4-089.png}
+\begin{eulercomment}
+Contoh berikut memvisualisasikan daerah layak (feasible region) dan titik optimum masalah
+pemrograman linear:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+Ax \le b, \quad x \ge 0, \quad c.x \to \text{Max.}
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Batas-batas ketaksamaan linear didefinisikan sebagai setengah-ruang (half-space).
+\end{eulercomment}
+\begin{eulerprompt}
+>A=[10,8,4;5,6,8;6,3,2;9,5,6];
+>b=[10,10,10,10]';
+>c=[1,1,1];
+\end{eulerprompt}
+\begin{eulercomment}
+Penyelesaian menggunakan algoritma simpleks mengembalikan titik optimum:
+\end{eulercomment}
+\begin{eulerprompt}
+>x=simplex(A,b,c,>max,>check)'
+\end{eulerprompt}
+\begin{euleroutput}
+[0,  1,  0.5]
+\end{euleroutput}
+\begin{eulercomment}
+Setiap bidang pembatas didefinisikan dengan fungsi \texttt{oneplane()}:
+\end{eulercomment}
+\begin{eulerformula}
+\[
+a \cdot x \le b
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>function oneplane (a,b,look="") ...
+\end{eulerprompt}
+\begin{eulerudf}
+return povplane(a,b,look)
+endfunction
+\end{eulerudf}
+\begin{eulercomment}
+Irisan dari semua bidang pembatas membentuk polihedron daerah layak:
+\end{eulercomment}
+\begin{eulerprompt}
+>function adm (A, b, r, look="") ...
+\end{eulerprompt}
+\begin{eulerudf}
+ol=[];
+loop 1 to rows(A); ol=ol|oneplane(A[#],b[#]); end;
+ol=ol|povbox([0,0,0],[r,r,r]);
+return povintersection(ol,look);
+endfunction
+\end{eulerudf}
+\begin{eulercomment}
+Menampilkan adegan daerah layak beserta titik optimumnya di Povray:
+\end{eulercomment}
+\begin{eulerprompt}
+>povstart(angle=120°,center=[0.5,0.5,0.5],zoom=3.5); ...
+>writeln(adm(A,b,2,povlook(green,0.4))); ...
+>writeAxes(0,1.3,0,1.6,0,1.5); ...
+\end{eulerprompt}
+\begin{eulercomment}
+Bola merah ditambahkan untuk menandai lokasi titik optimum:
+\end{eulercomment}
+\begin{eulerprompt}
+>writeln(povintersection([povsphere(x,0.5),povplane(c,c.x')], ...
+>povlook(red,0.9)));
+\end{eulerprompt}
+\begin{eulercomment}
+Vektor panah menunjukkan arah fungsi tujuan:
+\end{eulercomment}
+\begin{eulerprompt}
+>writeln(povarrow(x,c*0.5,povlook(red)));
+\end{eulerprompt}
+\begin{eulercomment}
+Teks 3D ditambahkan ke adegan menggunakan \texttt{povtext()}:
+\end{eulercomment}
+\begin{eulerprompt}
+>writeln(povtext("Linear Problem",[0,0.2,1.3],size=0.05,rotate=5°)); ...
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-092.png}
+
+\eulerheading{Ringkasan Contoh Lainnya}
+\begin{eulercomment}
+Menggambar Grafik Fungsi Dua Variabel dalam Bentuk Ekspresi Langsung
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y)=x^3-y^3
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>plot3d("x^3-y^3", -4, 4, -4, 4):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-094.png}
+\begin{eulercomment}
+Menggambar Grafik Fungsi Dua Variabel yang Rumusnya Disimpan dalam Variabel Ekspresi
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y)=x^2sin(y)
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>expr="x^2*sin(y)";
+>plot3d(expr,-10,10,0,4*pi):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-096.png}
+\begin{eulercomment}
+Menggambar Grafik Fungsi Dua Variabel yang Fungsinya Didefinisikan sebagai Fungsi Numerik
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y)=x^2+y^2
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>function f(x,y):=x^2+y^2
+>plot3d("f",-3,3,-3,3):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-098.png}
+\begin{eulercomment}
+Menggambar Grafik Fungsi Dua Variabel yang Fungsinya Didefinisikan sebagai Fungsi Simbolik
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y)=cos(x)sin(y)
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>function f(x,y)&=cos(x)*sin(y)
+\end{eulerprompt}
+\begin{euleroutput}
+cos(x) sin(y)
+\end{euleroutput}
+\begin{eulerprompt}
+>plot3d("f",-pi,pi,-pi,pi):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-100.png}
+\begin{eulercomment}
+Menggambar Data x, y, z pada ruang Tiga Dimensi (3D)
+\end{eulercomment}
+\begin{eulerprompt}
+>x=linspace(-3,3,40)';
+>y=linspace(-3,3,40);
+>z=exp(-(x^2+y^2));
+>...plot3d(x,y,z):
+\end{eulerprompt}
+\begin{eulercomment}
+Membuat Gambar Grafik Tiga Dimensi (3D) yang Bersifat Interaktif dan Animasi Grafik 3D
+\end{eulercomment}
+\begin{eulerformula}
+\[
+z(x,y,t)=sin(x+t)cos(y)
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>clg; for t=0 to 2*pi step 0.2; plot3d("sin(x+t)*cos(y)", -pi, pi, -pi, pi, r=2); wait(0.05); end;
+\end{eulerprompt}
+\begin{eulercomment}
+Menggambar Fungsi Parametrik Tiga Dimensi (3D)
+\end{eulercomment}
+\begin{eulerformula}
+\[
+x(x,y)=cos(x)cos(y)
+\]
+\end{eulerformula}
+\begin{eulerformula}
+\[
+y(x,y)=sin(x)cos(y)
+\]
+\end{eulerformula}
+\begin{eulerformula}
+\[
+z(x,y)=sin(y)
+\]
+\end{eulerformula}
+\begin{eulercomment}
+dengan domain \texttt{x} pada $[0,2\pi]$ dan \texttt{y} pada $[-2\pi,2\pi]$
+\end{eulercomment}
+\begin{eulerprompt}
+>plot3d("cos(x)*cos(y)", "sin(x)*cos(y)", "sin(y)", 0, 2*pi, -pi/2, pi/2):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-105.png}
+\begin{eulercomment}
+Menggambar Fungsi Implisit Tiga Dimensi (3D)
+\end{eulercomment}
+\begin{eulerformula}
+\[
+x^2+y^2+z^2=4
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>function f(x,y,z)&= x^2+y^2+z^2-4;
+>plot3d("f", >implicit, r=3):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-107.png}
+\begin{eulercomment}
+Menggambar Titik pada Ruang Tiga Dimensi (3D)
+\end{eulercomment}
+\begin{eulerprompt}
+>t=linspace(0,4*pi,80);
+>x=cos(t); y=sin(t); z=t;
+>plot3d(x,y,z, points=true, >wire):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-108.png}
+\begin{eulercomment}
+Mengatur Tampilan, Warna, dan Sudut Pandang Gambar Permukaan Tiga Dimensi (3D)
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y)=sin(x)cos(y)
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>plot3d("sin(x)*cos(y)", -pi, pi, -pi, pi, angle=45, height=35, >hue):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-110.png}
+\begin{eulercomment}
+Menampilkan Kontur dan Bidang Kontur Permukaan Tiga Dimensi (3D)
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y)=x^2+y^2
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>plot3d("x^2 + y^2", -2, 2, -2, 2, >contour, >cp):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-112.png}
+\begin{eulercomment}
+Menggambar Grafik Tiga Dimensi dalam Modus Anaglif
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f(x,y)=sin(x)cos(y)
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>plot3d("sin(x)*cos(y)", -pi, pi, -pi, pi, >anaglyph):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-114.png}
+\begin{eulercomment}
+Menggambar Diagram Batang Tiga Dimensi
+\end{eulercomment}
+\begin{eulerprompt}
+>M=[1, 3, 2, 5; 4, 2, 6, 3; 2, 5, 1, 4];
+>plot3d(M, >bar):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-115.png}
+\begin{eulercomment}
+Menggambar Permukaan Benda Putar
+\end{eulercomment}
+\begin{eulerprompt}
+>clg; plot2d(0, 0, a=0, b=10, c=0, d=10, grid=1, title="Klik 5 titik"); ...
+>x = []; y = []; ...
+>for i=1 to 5; p=mouse(); x=[x,p[1]]; y=[y,p[2]]; plot2d(x, y, a=0, b=10, c=0, d=10, >add, style="-", color=blue); plot2d(x, y, a=0, b=10, c=0, d=10, >points, color=red); wait(0); end; ...
+>plot2d(x, y, >add, style="o-", color=blue); wait(2); ...
+>v = linspace(0, 2*pi, 60); X = x'; Y = y'*cos(v); Z = y'*sin(v); plot3d(X, Y, Z, frame=3, angle=40°, height=25°, >user):
+\end{eulerprompt}
+\eulerimg{25}{images/Tugas 4-116.png}
+\begin{eulercomment}
+Menggambar Grafik 3D dengan Povray di EMT
+\end{eulercomment}
+\begin{eulerprompt}
+>povstart(angle=40°, height=25°, zoom=3); ...
+>pov3d(X, Y, Z); ...
+>povend();
+\end{eulerprompt}
+\eulerimg{34}{images/Tugas 4-117.png}
+\eulerimg{34}{images/Tugas 4-118.png}
+
+\eulerheading{Referensi Contoh Tambahan}
+\begin{eulercomment}
+Berkas panduan dan contoh pemodelan Povray tambahan dapat ditemukan pada direktori instalasi EMT
+berikut:
+\begin{itemize}
+    \item \texttt{Examples/Dandelin Spheres}
+    \item \texttt{Examples/Donat Math}
+    \item \texttt{Examples/Trefoil Knot}
+    \item \texttt{Examples/Optimization by Affine Scaling}
+\end{itemize}
+\end{eulercomment}
+
+\end{eulernotebook}
+\end{document}
