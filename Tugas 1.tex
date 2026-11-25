@@ -1,0 +1,201 @@
+\documentclass[11pt, a4paper, numbers=enddot, oneside]{scrbook}
+
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{fontspec}
+\usepackage[indonesian, english, bidi=basic, provide=*]{babel}
+\babelprovide[import, onchar=ids fonts]{indonesian}
+\babelprovide[import, onchar=ids fonts]{english}
+\babelfont{rm}{Noto Serif}
+\babelfont{sf}{Noto Sans}
+\babelfont{tt}{Noto Sans Mono}
+
+\usepackage{enumitem}
+\setlist[itemize]{label=\textbullet}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+
+\renewcommand{\thesection}{\Alph{section}}
+
+\title{Mathematical Software}
+\author{ARIIQ NABILA \\ 25030630033 \\ MATEMATIKA E}
+\date{}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+
+\chapter{Klasifikasi Software Matematika}
+
+Software matematika umumnya dibagi berdasarkan wilayah operasinya: analitik (simbolik), numerik, atau data.
+
+\begin{table}[htbp]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.3cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.6cm}}
+\toprule
+\textbf{Kategori} & \textbf{Deskripsi \& Kegunaan} & \textbf{Contoh Software} \\
+\midrule
+\textbf{Computer Algebra Systems (CAS)} & Memanipulasi variabel secara analitik tanpa pembulatan. Sangat esensial untuk kalkulus, aljabar abstrak, dan teori bilangan. & Mathematica, Maple, SymPy \\
+\midrule
+\textbf{Komputasi Numerik} & Berbasis aritmatika \emph{floating-point} untuk operasi matriks berskala masif, pemodelan sistem dinamis, dan kalkulasi algoritmik. & MATLAB, SciPy, Julia \\
+\midrule
+\textbf{Komputasi Statistik} & Fokus pada probabilitas, uji hipotesis, dan manipulasi \emph{dataframe} deret waktu. & R, Pandas/Statsmodels (Python) \\
+\midrule
+\textbf{Automated Theorem Provers} & Memverifikasi kebenaran logika formal secara ketat. Digunakan untuk membuktikan lema dan teorema tingkat lanjut. & Lean, Coq \\
+\midrule
+\textbf{Mathematical Typesetting} & Sistem \emph{markup} untuk merender dokumen berstandar akademik dan persamaan kompleks (mis. integral Riemann atau matriks stokastik). & LaTeX, MathJax \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\chapter{Sejarah Perkembangan Software Matematika}
+
+Evolusi Software matematika berjalan beriringan dengan perkembangan arsitektur komputasi, bergerak dari sekadar kalkulator numerik besar menjadi asisten pembuktian logis yang canggih.
+
+\begin{itemize}
+    \item \textbf{Era 1960–1970an (Fondasi Komputasi \& CAS Pertama):} Bahasa pemrograman tingkat tinggi seperti FORTRAN mendominasi kalkulasi numerik untuk proyek sains dan militer. Pada akhir 1960-an, proyek MACSYMA di MIT memelopori \emph{Computer Algebra System} (CAS) pertama yang mampu menyelesaikan ekspresi analitik (seperti integral) secara simbolik, bukan sekadar komputasi angka.
+    \item \textbf{Era 1980an (Kelahiran Raksasa Komersial):} Software mulai digunakan untuk penggunaan industri dan akademik. MATLAB (1984) lahir sebagai antarmuka untuk pustaka matriks aljabar linear (LINPACK). Di ranah komputasi simbolik, Maple (1982) dan Wolfram Mathematica (1988) diluncurkan dan segera merajai pasar dengan mesin komputasi teoretis yang sangat tangguh.
+    \item \textbf{Era 1990an (Demokratisasi Statistika \& Standar Publikasi):} LaTeX (terutama rilis LaTeX2e pada 1994) memantapkan posisinya sebagai standar absolut untuk penulisan (\emph{typesetting}) matematika di kalangan akademisi. Di bidang data, bahasa R (1993) diciptakan di Universitas Auckland untuk menyediakan alternatif \emph{open-source} bagi Software statistik komersial.
+    \item \textbf{Era 2000an (Revolusi \emph{Open Source} \& Kebangkitan Python):} Rilisnya pustaka NumPy (2006) dan SciPy mengubah Python dari bahasa pemrograman umum menjadi raksasa komputasi ilmiah. Pada periode yang sama, proyek SageMath (2005) mulai menyatukan puluhan alat matematika \emph{open-source} dalam satu antarmuka agar bisa bersaing langsung dengan Software komersial yang mahal.
+    \item \textbf{Era 2010an (Komputasi Interaktif \& \emph{Cloud}):} Kehadiran Jupyter Notebook mengubah paradigma kerja matematikawan. Format \emph{notebook} ini memungkinkan integrasi blok kode (Python/R/Julia), persamaan matematis, dan visualisasi grafik interaktif dalam satu dokumen hidup (\emph{live document}).
+    \item \textbf{Era 2020an (Integrasi AI \& \emph{Automated Theorem Provers}):} \emph{Large Language Models} (LLM) mulai diintegrasikan untuk membantu menerjemahkan ide matematis abstrak menjadi sintaks kode. Selain itu, Software pembuktian teorema berbasis logika formal seperti \textbf{Lean} semakin populer di kalangan matematikawan murni (contohnya dalam proyek \emph{Liquid Tensor Experiment}), berfungsi bukan untuk menghitung, melainkan memvalidasi logika pembuktian.
+\end{itemize}
+
+\chapter{Analisis Data: Ekosistem Python vs R}
+
+Dalam konteks pemodelan regresi (\emph{robust regression} / \emph{outlier handling}) dan visualisasi deret waktu, kedua ekosistem ini memiliki filosofi yang bertolak belakang.
+
+\section{Arsitektur dan Manipulasi Data}
+
+\begin{itemize}
+    \item \textbf{R (Tidyverse):} Menggunakan filosofi \emph{Grammar of Data Manipulation} fungsional dengan operator \emph{pipe} (\texttt{\%>\%} atau \texttt{|>}). Manipulasi data dibaca secara sekuensial dan deskriptif.
+    \item \textbf{Python (Pandas):} Berbasis \emph{Object-Oriented Programming} (OOP) yang diwariskan dari NumPy. Pemanggilan metode sering kali bersarang (\emph{chained methods}), sangat tangguh dalam mengeksekusi operasi pada matriks berukuran besar.
+\end{itemize}
+
+\section{Pendekatan Pemodelan}
+
+\begin{itemize}
+    \item \textbf{R:} Adalah standar emas akademis untuk \textbf{inferensi statistik}. Fungsi bawaan dengan mudah menghasilkan tabel statistik terperinci (uji-t, p-value, interval kepercayaan). Model \emph{robust} untuk menangani \emph{outlier} tertanam kuat pada paket seperti \texttt{MASS}.
+    \item \textbf{Python:} Memiliki dua pilar (Statsmodels untuk inferensi dan Scikit-Learn untuk ML). Keunggulan mutlak Python adalah kemampuannya menjembatani regresi statistik klasik dengan arsitektur \textbf{Machine Learning} di dalam satu alur kerja yang sama.
+\end{itemize}
+
+\section{Visualisasi Deret Waktu (Time Series)}
+
+\begin{itemize}
+    \item \textbf{R (\texttt{ggplot2} + \texttt{lubridate}):} Sempurna untuk infografis dan visualisasi siap publikasi (\emph{Grammar of Graphics}).
+    \item \textbf{Python (\texttt{Matplotlib} + \texttt{DatetimeIndex}):} Superior dalam pergeseran waktu (\emph{lagging}), rata-rata bergerak (\emph{rolling mean}), serta pembangunan visualisasi komputasional (seperti \emph{3D surface plot}).
+\end{itemize}
+
+\chapter{Euler Math Toolbox (EMT)}
+
+EMT adalah sistem \textbf{hibrida} yang efisien dan unik, dirancang oleh René Grothmann (1988). EMT menjembatani kesenjangan antara komputasi angka murni dan manipulasi rumus.
+
+\section*{Fitur Kunci}
+
+\begin{enumerate}
+    \item \textbf{Arsitektur Ganda:} Menggabungkan \emph{engine} numerik mirip MATLAB (ditulis dalam C/C++) dengan \emph{engine} simbolik \textbf{Maxima} (CAS klasik yang sangat kuat).
+    \item \textbf{Aritmatika Interval (\emph{Interval Arithmetic}):} Fitur krusial untuk mencegah kesalahan pembulatan \emph{floating-point}. EMT melacak batas atas dan batas bawah perhitungan untuk memastikan hasil eksak selalu berada di dalam rentang tersebut.
+    \item \textbf{Buku Kerja Interaktif:} Menyediakan antarmuka berbasis \emph{notebook} tempat kode, plot 3D, dan deskripsi berformat Markdown/LaTeX dapat dijalankan secara bersamaan.
+    \item \textbf{Keringanan Ekstrem:} Memiliki kompilator C internal (Tiny C) dan integrasi skrip Python asli, semuanya dalam satu paket instalasi kecil tanpa memerlukan dependensi besar.
+\end{enumerate}
+
+\section*{Pro dan Kontra EMT}
+
+\begin{itemize}
+    \item \textbf{Pro:} Sangat cepat, ukuran kecil, integrasi aljabar dan numerik berjalan mulus, \emph{open-source}.
+    \item \textbf{Kontra:} Hanya dirancang murni untuk Windows (membutuhkan perantara di OS lain), antarmuka grafis (GUI) klasik, dan basis komunitas yang relatif kecil jika dibandingkan dengan raksasa seperti Python atau R.
+\end{itemize}
+
+\chapter{Software Matematika Berdasarkan Domain Spesifik}
+
+Selain analisis data dan CAS umum, komputasi matematis memiliki spesialisasi tinggi yang melayani berbagai cabang keilmuan mutakhir:
+
+\section{Kriptografi \& Teori Bilangan (Cryptography)}
+
+\begin{itemize}
+    \item \textbf{PARI/GP:} Sistem aljabar komputer yang dirancang khusus untuk komputasi teoretis secara presisi dalam teori bilangan (faktorisasi, fungsi L, kurva eliptik) yang menjadi jantung kriptografi modern.
+    \item \textbf{Magma:} Software komersial raksasa untuk aljabar abstrak, teori Galois, dan kriptografi. Sangat berkuasa dalam memecahkan masalah struktur diskrit.
+    \item \textbf{SageMath:} Ekosistem \emph{open-source} berbasis Python yang memiliki modul kriptografi bawaan sangat komprehensif, mengintegrasikan PARI/GP dan Singular di balik layar.
+\end{itemize}
+
+\section{Asisten Pembuktian (Proof Assistants)}
+
+\begin{itemize}
+    \item \textbf{Lean:} Sangat dominan saat ini (terutama Lean 4) untuk memformalkan matematika kompleks. Memiliki pustaka raksasa \emph{mathlib} yang dikembangkan secara gotong royong oleh matematikawan murni.
+    \item \textbf{Coq:} Asisten bukti berbasis Kalkulus Konstruksi Induktif (\emph{Calculus of Inductive Constructions}), historis karena perannya dalam pembuktian Teorema Empat Warna.
+    \item \textbf{Isabelle/HOL:} Banyak digunakan untuk verifikasi sistem kritis (perangkat keras/Software) serta memformalkan cabang-cabang matematika terapan dan analisis.
+\end{itemize}
+
+\section{Geometri Dinamis \& Diskrit (Geometry)}
+
+\begin{itemize}
+    \item \textbf{GeoGebra:} Standar industri absolut untuk pendidikan dan eksplorasi, menyatukan geometri dinamis, aljabar, kalkulus, dan statistik dalam satu kanvas interaktif.
+    \item \textbf{Polymake:} Spesialis untuk riset dalam geometri diskrit dan polihedral (kombinatorika politop, kompleks simplisial), perpotongan kuat antara aljabar linear dan topologi.
+    \item \textbf{Cinderella:} Selain untuk geometri dinamis, sangat kuat mensimulasikan geometri non-Euclidean (hiperbolik/fraktal) dan fisika mekanik.
+\end{itemize}
+
+\section{Analisis Numerik Lanjut (Numerical Analysis)}
+
+\begin{itemize}
+    \item \textbf{FEniCS:} \emph{Platform} komputasi mutakhir untuk memecahkan Persamaan Diferensial Parsial (PDE) menggunakan Finite Element Method (FEM). Inti dari analisis struktur mekanis dan fluida.
+    \item \textbf{Scilab \& GNU Octave:} Keduanya adalah saudara kandung \emph{open-source} dari MATLAB, sangat mumpuni untuk simulasi numerik murni, pemrosesan sinyal, dan sintesis sistem kontrol.
+    \item \textbf{Julia:} Meskipun berupa bahasa pemrograman, ini adalah standar modern bagi penganalisis numerik. Menawarkan eksekusi JIT (\emph{Just-In-Time}) secepat C/Fortran namun dengan sintaks level-tinggi seperti Python.
+\end{itemize}
+
+\section{Matematika Musik \& Audio (Musical Computing)}
+
+\begin{itemize}
+    \item \textbf{OpenMusic:} Bahasa pemrograman visual berbasis LISP untuk komposisi berbantuan komputer. Komposer dapat merancang kurva matematis yang mendikte struktur harmonik atau ritme algoritmis.
+    \item \textbf{SuperCollider \& Sonic Pi:} \emph{Live-coding} lingkungan komputasi audio di mana algoritma dan persamaan matematika digunakan secara langsung untuk mensintesis gelombang suara kompleks dan tekstur musik.
+\end{itemize}
+
+\section{Fisika Matematis (Physics)}
+
+\begin{itemize}
+    \item \textbf{COMSOL Multiphysics:} Pemodelan elemen hingga industri untuk memecahkan masalah fisika tergandeng (misal: merangkai simulasi termal, elektromagnetik, dan mekanik sekaligus).
+    \item \textbf{Geant4:} Pustaka C++ buatan CERN yang menggunakan metode \emph{Monte Carlo} untuk mensimulasikan lintasan partikel melintasi materi (fisika nuklir dan radiasi ruang angkasa).
+    \item \textbf{FeynCalc (Mathematica Add-on):} Alat komputasi khusus untuk mengevaluasi secara analitik diagram Feynman dan kinematika dalam fisika partikel teoretis.
+\end{itemize}
+
+\section{Biomatematika \& Sistem Dinamis (Biomathematics)}
+
+\begin{itemize}
+    \item \textbf{XPPAUT:} \emph{Software} andalan untuk mensimulasikan, menganalisis stabilitas, dan memvisualisasikan sistem persamaan diferensial. Sangat esensial dalam neurosains komputasional (mis. model neuron Hodgkin-Huxley).
+    \item \textbf{COPASI:} Software khusus untuk memodelkan dan mengkalibrasi dinamika jaringan biokimia serta kinetika enzim biologis menggunakan pendekatan persamaan stokastik maupun deterministik.
+\end{itemize}
+
+\section{Kimia Matematis \& Komputasional (Mathematical Chemistry)}
+
+\begin{itemize}
+    \item \textbf{Gaussian:} Alat komputasi raksasa untuk memecahkan persamaan Schrödinger secara numerik (kimia kuantum) demi memprediksi struktur geometri dan tingkat energi molekul.
+    \item \textbf{GROMACS:} Mesin super efisien untuk simulasi dinamika molekuler, merender ribuan persamaan gerak mekanika klasik Newtonian untuk sistem biomolekuler (protein, lipid).
+\end{itemize}
+
+\section{Ekonomi Matematis \& Ekonometrika (Mathematical Economics)}
+
+\begin{itemize}
+    \item \textbf{Dynare:} Paket ekstensi MATLAB/Octave yang mendominasi riset makroekonomi untuk mensimulasikan model \emph{Dynamic Stochastic General Equilibrium} (DSGE).
+    \item \textbf{GAMS (General Algebraic Modeling System):} Sistem pemodelan tinggi khusus untuk optimasi matematis diskrit/kontinu dan teori permainan ekuilibrium dalam riset ekonomi/operasional.
+    \item \textbf{Stata \& EViews:} Industri ekonometrika terapan berfokus kuat di sini. Sangat kuat untuk analisis panel data, deret waktu ekonomi (\emph{cointegration}, ARCH/GARCH), dan pemodelan kausalitas preskriptif.
+\end{itemize}
+
+\bigskip
+\noindent\rule{\textwidth}{0.4pt}
+\medskip
+
+\noindent Dokumen ini disusun dengan bantuan Gemini AI dengan \emph{prompt} sebagai berikut.
+
+\begin{enumerate}
+    \item Carikan berbagai mathematical software, klasifikasinya, kegunaannya, perbandingan pro-kontranya, sejarah perkembangannya, kemutakhirannya, kompleksitasnya, dan sebagainya secara komprehensif beserta tabel dan lain-lain.
+    \item Bagaimana fitur, kelebihan, dan kekurangan Euler Math Toolbox?
+    \item Bagaimana sejarah perkembangan software matematika? (tidak harus spesifik, tetapi komprehensif)
+    \item Selain untuk analisis data, coba carikan mathematical software yang berfungsi di ranah cryptography, proof assistants, geometry, numerical analysis, musical, physics, biomathematics, mathematical chemistry, dan mathematical economics.
+\end{enumerate}
+
+\end{document}
